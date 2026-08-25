@@ -8,7 +8,7 @@
 </head>
 <body>
   <main class="app-shell">
-    <section id="loginView" class="card">
+    <section id="loginView" class="login-card card">
       <div class="brand">
         <span class="eyebrow">HR EVALUATION</span>
         <h1>人事評価システム</h1>
@@ -43,40 +43,64 @@
         </div>
       </header>
 
-      <section class="card employee-card">
+      <section class="employee-card card">
         <div>
           <span class="eyebrow">評価対象</span>
           <h2 id="employeeName">-</h2>
           <p id="employeeMeta">-</p>
         </div>
-        <span id="statusBadge" class="status-badge">下書き</span>
+        <div class="employee-status">
+          <span id="statusBadge" class="status-badge">下書き</span>
+        </div>
       </section>
 
-      <section class="card">
-        <div class="section-heading">
-          <div>
-            <span class="eyebrow">2026 TEST</span>
-            <h2>評価項目</h2>
-          </div>
-          <p>各項目を1〜5で評価してください。</p>
+      <section class="summary-card card">
+        <div>
+          <span class="eyebrow">評価シート</span>
+          <h2 id="templateName">-</h2>
+          <p id="templateMeta">-</p>
         </div>
 
-        <form id="evaluationForm" class="evaluation-form">
-          <div id="scoreFields"></div>
+        <div class="score-summary">
+          <span>加重点数</span>
+          <strong><span id="weightedScore">0.0</span><small> / 100</small></strong>
+          <div class="score-bar">
+            <span id="scoreBar"></span>
+          </div>
+        </div>
+      </section>
 
-          <label class="comment-field">
-            総合コメント
-            <textarea id="comment" rows="6" placeholder="評価コメントを入力"></textarea>
+      <div class="sticky-progress">
+        <div>
+          <strong id="progressText">0 / 0 項目</strong>
+          <span>入力済み</span>
+        </div>
+        <div class="progress-actions">
+          <button id="saveButtonTop" type="button" class="secondary">一時保存</button>
+          <button id="submitButtonTop" type="button" class="primary">評価を確定</button>
+        </div>
+      </div>
+
+      <form id="evaluationForm">
+        <div id="sectionsContainer"></div>
+
+        <section class="card comment-card">
+          <span class="eyebrow">COMMENT</span>
+          <h2>総合コメント</h2>
+          <label>
+            評価コメント
+            <textarea id="comment" rows="7" placeholder="評価コメントを入力"></textarea>
           </label>
+        </section>
 
+        <section class="card footer-actions">
+          <p id="saveMessage" class="message" aria-live="polite"></p>
           <div class="actions">
             <button type="button" id="saveButton" class="secondary">一時保存</button>
             <button type="submit" id="submitButton" class="primary">評価を確定</button>
           </div>
-
-          <p id="saveMessage" class="message" aria-live="polite"></p>
-        </form>
-      </section>
+        </section>
+      </form>
     </section>
   </main>
 
