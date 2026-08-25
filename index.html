@@ -1,143 +1,305 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>人事評価システム</title>
-  <link rel="stylesheet" href="./style.css?v=3.0" />
+  <link rel="stylesheet" href="./style.css?v=4.1">
 </head>
 <body>
-  <main id="root">
-    <section id="loginView" class="login-shell">
-      <div class="login-card card">
-        <span class="eyebrow">HR EVALUATION</span>
+  <section id="loginView" class="login-page">
+    <div class="login-brand-panel">
+      <div class="login-brand-inner">
+        <div class="brand-mark">HR</div>
         <h1>人事評価システム</h1>
-        <p>評価者IDとパスワードを入力してください。</p>
-        <form id="loginForm" class="stack">
-          <label>評価者ID
-            <input id="loginId" type="text" value="EV0001" autocomplete="username" required />
-          </label>
-          <label>パスワード
-            <input id="password" type="password" autocomplete="current-password" required />
-          </label>
-          <button class="primary" type="submit">ログイン</button>
-          <p id="loginMessage" class="message"></p>
-        </form>
+        <p>成長と評価を、ひとつの仕組みに。</p>
+        <div class="login-feature-list">
+          <div>✓ 自己評価から最終評価まで一元管理</div>
+          <div>✓ 昇給・夏季賞与・冬季賞与に対応</div>
+          <div>✓ 前回評価との比較・コピー</div>
+          <div>✓ 成長会議向け全社員レビュー</div>
+        </div>
       </div>
-    </section>
+    </div>
+    <div class="login-form-panel">
+      <form id="loginForm" class="login-box">
+        <div class="system-label">INTERNAL HR PLATFORM</div>
+        <h2>ログイン</h2>
+        <p>評価者IDとパスワードを入力してください。</p>
+        <label>評価者ID
+          <input id="loginId" value="EV0001" autocomplete="username" required>
+        </label>
+        <label>パスワード
+          <input id="password" type="password" autocomplete="current-password" required>
+        </label>
+        <button class="btn btn-primary btn-block">ログイン</button>
+        <p id="loginMessage" class="message"></p>
+      </form>
+    </div>
+  </section>
 
-    <section id="appView" class="hidden">
-      <header class="app-header">
+  <div id="appView" class="app-layout hidden">
+    <header class="global-header">
+      <div class="global-brand">
+        <div class="global-brand-mark">HR</div>
         <div>
-          <span class="eyebrow">HR EVALUATION</span>
+          <strong>人事評価システム</strong>
+          <span>Human Resources Evaluation Platform</span>
+        </div>
+      </div>
+      <div class="global-header-right">
+        <div class="cycle-switch">
+          <span>評価回</span>
+          <select id="cycleSelector"></select>
+        </div>
+        <div id="accountBadge" class="account-box"></div>
+        <button id="logoutButton" class="header-button">ログアウト</button>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <div class="sidebar-section-label">MAIN MENU</div>
+      <button class="side-nav active" data-nav="dashboard">
+        <span class="side-icon">▦</span><span>ダッシュボード</span>
+      </button>
+      <button id="selfNav" class="side-nav hidden" data-nav="self">
+        <span class="side-icon">◎</span><span>自己評価</span>
+      </button>
+      <button id="primaryNav" class="side-nav hidden" data-nav="primary">
+        <span class="side-icon">▣</span><span>一次評価</span>
+      </button>
+      <button id="interviewNav" class="side-nav hidden" data-nav="interview">
+        <span class="side-icon">◇</span><span>面談後評価</span>
+      </button>
+      <button id="executiveNav" class="side-nav hidden" data-nav="executive">
+        <span class="side-icon">★</span><span>成長会議・最終評価</span>
+      </button>
+
+      <div class="sidebar-section-label second">STATUS</div>
+      <div class="sidebar-status-box">
+        <span>現在の評価回</span>
+        <strong id="sidebarCycleName">-</strong>
+        <small id="sidebarCycleStatus">-</small>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="breadcrumb">
+        <span>人事評価</span><span>›</span><strong id="breadcrumbCurrent">ダッシュボード</strong>
+      </div>
+
+      <div class="page-header">
+        <div>
           <h1 id="pageTitle">ダッシュボード</h1>
+          <p id="pageSubtitle">評価業務の進捗と、対応が必要な項目を確認できます。</p>
         </div>
-        <div class="header-actions">
-          <span id="accountBadge" class="account-badge"></span>
-          <button id="homeButton" class="ghost hidden">ダッシュボード</button>
-          <button id="logoutButton" class="ghost">ログアウト</button>
+        <div class="page-header-actions">
+          <button id="homeButton" class="btn btn-secondary hidden">ダッシュボードへ戻る</button>
         </div>
-      </header>
+      </div>
 
       <section id="dashboardView">
-        <div id="welcomePanel" class="card welcome-panel"></div>
-        <div id="permissionCards" class="permission-grid"></div>
-        <section id="taskPanel" class="card">
-          <div class="section-head">
+        <div class="dashboard-summary-grid">
+          <section class="summary-kpi">
+            <span>評価回</span>
+            <strong id="currentCycleName">-</strong>
+            <small id="currentCycleMeta">-</small>
+          </section>
+          <section class="summary-kpi">
+            <span>自分の評価</span>
+            <strong id="selfProgressKpi">-</strong>
+            <small>自己評価の進捗</small>
+          </section>
+          <section class="summary-kpi">
+            <span>一次評価対象</span>
+            <strong id="primaryCountKpi">0名</strong>
+            <small>担当する被評価者</small>
+          </section>
+          <section class="summary-kpi">
+            <span>成長会議対象</span>
+            <strong id="executiveCountKpi">0名</strong>
+            <small>役員確認対象</small>
+          </section>
+        </div>
+
+        <section class="panel">
+          <div class="panel-header">
             <div>
-              <span class="eyebrow">YOUR TASKS</span>
-              <h2>今回の評価</h2>
+              <span class="panel-kicker">AVAILABLE FUNCTIONS</span>
+              <h2>利用可能な評価機能</h2>
             </div>
+          </div>
+          <div id="permissionCards" class="function-grid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <span class="panel-kicker">YOUR TASKS</span>
+              <h2>対応が必要な評価</h2>
+            </div>
+            <span id="taskCountBadge" class="panel-count">0件</span>
           </div>
           <div id="taskList"></div>
         </section>
       </section>
 
       <section id="listView" class="hidden">
-        <div class="card">
-          <div class="section-head">
+        <section class="panel">
+          <div class="panel-header">
             <div>
-              <span class="eyebrow">EMPLOYEES</span>
-              <h2 id="listTitle">評価対象者</h2>
+              <span class="panel-kicker">EMPLOYEE LIST</span>
+              <h2 id="listTitle">評価対象者一覧</h2>
               <p id="listDescription"></p>
             </div>
           </div>
+          <div class="table-toolbar">
+            <input id="employeeSearch" class="toolbar-search" placeholder="社員名・社員番号で検索">
+            <span id="employeeListCount" class="toolbar-count">0名</span>
+          </div>
           <div id="employeeList"></div>
-        </div>
+        </section>
       </section>
 
       <section id="evaluationView" class="hidden">
-        <section class="card employee-banner">
-          <div>
-            <span class="eyebrow" id="stageEyebrow">EVALUATION</span>
-            <h2 id="targetName">-</h2>
-            <p id="targetMeta">-</p>
+        <section class="employee-info-panel">
+          <div class="employee-info-main">
+            <div class="employee-avatar" id="employeeAvatar">山</div>
+            <div>
+              <span id="stageEyebrow" class="panel-kicker">EVALUATION</span>
+              <h2 id="targetName">-</h2>
+              <p id="targetMeta">-</p>
+            </div>
           </div>
-          <div class="score-box">
-            <span id="scoreLabel">加重点数</span>
-            <strong id="currentScore">0.0</strong>
+          <div class="evaluation-score-summary">
+            <div>
+              <span id="scoreLabel">加重点数</span>
+              <strong id="currentScore">0.0</strong>
+              <small>/ 100</small>
+            </div>
+            <div class="score-meter"><span id="scoreMeterFill"></span></div>
           </div>
         </section>
 
-        <div id="stageNotice" class="notice"></div>
-
-        <div class="sticky-bar">
-          <div>
-            <strong id="inputProgress">0 / 0</strong>
-            <span>入力済み</span>
+        <section id="previousPanel" class="panel previous-panel hidden">
+          <div class="panel-header">
+            <div>
+              <span class="panel-kicker">PREVIOUS EVALUATION</span>
+              <h2>前回評価を参考にする</h2>
+              <p id="previousSummary"></p>
+            </div>
+            <button id="togglePreviousButton" type="button" class="btn btn-secondary">前回評価を表示</button>
           </div>
-          <div class="sticky-actions">
-            <button id="saveTopButton" class="secondary">一時保存</button>
-            <button id="submitTopButton" class="primary">提出・確定</button>
+
+          <div id="previousTools" class="previous-tools hidden">
+            <div class="reference-score-row">
+              <div class="reference-score-card">
+                <span>前回の自己評価</span><strong id="prevSelfTotal">-</strong>
+              </div>
+              <div class="reference-score-card">
+                <span>前回の一次評価</span><strong id="prevPrimaryTotal">-</strong>
+              </div>
+              <div class="reference-score-card">
+                <span>前回の面談後評価</span><strong id="prevInterviewTotal">-</strong>
+              </div>
+              <div class="reference-score-card">
+                <span>前回の最終評価</span><strong id="prevFinalTotal">-</strong>
+              </div>
+            </div>
+
+            <div class="copy-toolbar">
+              <div>
+                <strong>前回の評価を今回へ反映</strong>
+                <p>コピー後に修正できます。保存するまではデータベースに反映されません。</p>
+              </div>
+              <div class="copy-buttons">
+                <button id="copyAllButton" type="button" class="btn btn-primary-soft">すべてコピー</button>
+                <button type="button" class="btn btn-secondary section-copy" data-section="common_behavior">② 共通行動</button>
+                <button type="button" class="btn btn-secondary section-copy" data-section="department_results">③ 部署成果</button>
+                <button type="button" class="btn btn-secondary section-copy" data-section="department_behavior">④ 能力・行動</button>
+              </div>
+            </div>
+
+            <div id="previousOverview" class="comparison-summary"></div>
+          </div>
+        </section>
+
+        <div id="stageNotice" class="workflow-notice"></div>
+
+        <div class="evaluation-toolbar">
+          <div class="progress-box">
+            <span>入力進捗</span>
+            <strong id="inputProgress">0 / 0</strong>
+            <div class="mini-progress"><span id="inputProgressFill"></span></div>
+          </div>
+          <div class="toolbar-actions">
+            <button id="saveTopButton" type="button" class="btn btn-secondary">一時保存</button>
+            <button id="submitTopButton" type="button" class="btn btn-primary">提出・確定</button>
           </div>
         </div>
 
         <form id="evaluationForm">
           <div id="evaluationSections"></div>
 
-          <section class="card comment-card">
-            <span class="eyebrow">COMMENT</span>
-            <h2 id="commentTitle">コメント</h2>
-            <textarea id="stageComment" rows="6" placeholder="コメントを入力"></textarea>
+          <section class="panel comment-panel">
+            <div class="panel-header">
+              <div><span class="panel-kicker">COMMENT</span><h2 id="commentTitle">コメント</h2></div>
+            </div>
+            <textarea id="stageComment" rows="6" placeholder="評価理由、面談内容、補足事項などを入力"></textarea>
           </section>
 
-          <section class="card action-footer">
+          <section class="panel form-footer">
             <p id="saveMessage" class="message"></p>
-            <div class="footer-buttons">
-              <button id="saveButton" class="secondary" type="button">一時保存</button>
-              <button id="submitButton" class="primary" type="submit">提出・確定</button>
+            <div>
+              <button id="saveButton" type="button" class="btn btn-secondary">一時保存</button>
+              <button id="submitButton" class="btn btn-primary">提出・確定</button>
             </div>
           </section>
         </form>
       </section>
 
       <section id="executiveView" class="hidden">
-        <div class="card">
-          <div class="section-head exec-head">
+        <section class="panel">
+          <div class="panel-header executive-panel-head">
             <div>
-              <span class="eyebrow">GROWTH MEETING</span>
+              <span class="panel-kicker">GROWTH MEETING</span>
               <h2>全社員評価一覧</h2>
-              <p>面談後評価を中心に、成長会議で確認するための一覧です。</p>
+              <p id="executiveCycleLabel"></p>
             </div>
-            <div class="filters">
-              <select id="departmentFilter">
-                <option value="">全部署</option>
-              </select>
+            <div class="executive-summary-mini">
+              <div><span>対象者</span><strong id="execTotalPeople">0</strong></div>
+              <div><span>最終確定</span><strong id="execFinalizedPeople">0</strong></div>
+              <div><span>要確認</span><strong id="execDiffPeople">0</strong></div>
+            </div>
+          </div>
+
+          <div class="table-toolbar executive-toolbar">
+            <div class="filter-row">
+              <select id="departmentFilter"><option value="">全部署</option></select>
               <select id="statusFilter">
                 <option value="">全ステータス</option>
-                <option value="interview_submitted">面談後提出済み</option>
+                <option value="self_draft">自己評価 下書き</option>
+                <option value="self_submitted">自己評価 提出済み</option>
+                <option value="primary_draft">一次評価</option>
+                <option value="primary_submitted">一次評価 提出済み</option>
+                <option value="interview_submitted">面談後評価 提出済み</option>
                 <option value="growth_meeting">成長会議</option>
                 <option value="finalized">最終確定</option>
               </select>
+              <select id="diffFilter">
+                <option value="">差異：すべて</option>
+                <option value="large">差異2点以上あり</option>
+              </select>
             </div>
           </div>
+
           <div id="executiveTable"></div>
-        </div>
+        </section>
       </section>
-    </section>
-  </main>
+    </main>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./app.js?v=3.0"></script>
+  <script src="./app.js?v=4.1"></script>
 </body>
 </html>
