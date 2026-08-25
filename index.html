@@ -4,107 +4,140 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>人事評価システム</title>
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./style.css?v=3.0" />
 </head>
 <body>
-  <main class="app-shell">
-    <section id="loginView" class="login-card card">
-      <div class="brand">
+  <main id="root">
+    <section id="loginView" class="login-shell">
+      <div class="login-card card">
         <span class="eyebrow">HR EVALUATION</span>
         <h1>人事評価システム</h1>
         <p>評価者IDとパスワードを入力してください。</p>
+        <form id="loginForm" class="stack">
+          <label>評価者ID
+            <input id="loginId" type="text" value="EV0001" autocomplete="username" required />
+          </label>
+          <label>パスワード
+            <input id="password" type="password" autocomplete="current-password" required />
+          </label>
+          <button class="primary" type="submit">ログイン</button>
+          <p id="loginMessage" class="message"></p>
+        </form>
       </div>
-
-      <form id="loginForm" class="stack">
-        <label>
-          評価者ID
-          <input id="loginId" type="text" autocomplete="username" placeholder="EV0001" required />
-        </label>
-
-        <label>
-          パスワード
-          <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" required />
-        </label>
-
-        <button type="submit" class="primary">ログイン</button>
-        <p id="loginMessage" class="message" aria-live="polite"></p>
-      </form>
     </section>
 
     <section id="appView" class="hidden">
-      <header class="topbar">
+      <header class="app-header">
         <div>
           <span class="eyebrow">HR EVALUATION</span>
-          <h1>評価入力</h1>
+          <h1 id="pageTitle">ダッシュボード</h1>
         </div>
-        <div class="topbar-actions">
-          <span id="evaluatorName" class="user-chip"></span>
+        <div class="header-actions">
+          <span id="accountBadge" class="account-badge"></span>
+          <button id="homeButton" class="ghost hidden">ダッシュボード</button>
           <button id="logoutButton" class="ghost">ログアウト</button>
         </div>
       </header>
 
-      <section class="employee-card card">
-        <div>
-          <span class="eyebrow">評価対象</span>
-          <h2 id="employeeName">-</h2>
-          <p id="employeeMeta">-</p>
-        </div>
-        <div class="employee-status">
-          <span id="statusBadge" class="status-badge">下書き</span>
+      <section id="dashboardView">
+        <div id="welcomePanel" class="card welcome-panel"></div>
+        <div id="permissionCards" class="permission-grid"></div>
+        <section id="taskPanel" class="card">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">YOUR TASKS</span>
+              <h2>今回の評価</h2>
+            </div>
+          </div>
+          <div id="taskList"></div>
+        </section>
+      </section>
+
+      <section id="listView" class="hidden">
+        <div class="card">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">EMPLOYEES</span>
+              <h2 id="listTitle">評価対象者</h2>
+              <p id="listDescription"></p>
+            </div>
+          </div>
+          <div id="employeeList"></div>
         </div>
       </section>
 
-      <section class="summary-card card">
-        <div>
-          <span class="eyebrow">評価シート</span>
-          <h2 id="templateName">-</h2>
-          <p id="templateMeta">-</p>
-        </div>
+      <section id="evaluationView" class="hidden">
+        <section class="card employee-banner">
+          <div>
+            <span class="eyebrow" id="stageEyebrow">EVALUATION</span>
+            <h2 id="targetName">-</h2>
+            <p id="targetMeta">-</p>
+          </div>
+          <div class="score-box">
+            <span id="scoreLabel">加重点数</span>
+            <strong id="currentScore">0.0</strong>
+          </div>
+        </section>
 
-        <div class="score-summary">
-          <span>加重点数</span>
-          <strong><span id="weightedScore">0.0</span><small> / 100</small></strong>
-          <div class="score-bar">
-            <span id="scoreBar"></span>
+        <div id="stageNotice" class="notice"></div>
+
+        <div class="sticky-bar">
+          <div>
+            <strong id="inputProgress">0 / 0</strong>
+            <span>入力済み</span>
+          </div>
+          <div class="sticky-actions">
+            <button id="saveTopButton" class="secondary">一時保存</button>
+            <button id="submitTopButton" class="primary">提出・確定</button>
           </div>
         </div>
+
+        <form id="evaluationForm">
+          <div id="evaluationSections"></div>
+
+          <section class="card comment-card">
+            <span class="eyebrow">COMMENT</span>
+            <h2 id="commentTitle">コメント</h2>
+            <textarea id="stageComment" rows="6" placeholder="コメントを入力"></textarea>
+          </section>
+
+          <section class="card action-footer">
+            <p id="saveMessage" class="message"></p>
+            <div class="footer-buttons">
+              <button id="saveButton" class="secondary" type="button">一時保存</button>
+              <button id="submitButton" class="primary" type="submit">提出・確定</button>
+            </div>
+          </section>
+        </form>
       </section>
 
-      <div class="sticky-progress">
-        <div>
-          <strong id="progressText">0 / 0 項目</strong>
-          <span>入力済み</span>
-        </div>
-        <div class="progress-actions">
-          <button id="saveButtonTop" type="button" class="secondary">一時保存</button>
-          <button id="submitButtonTop" type="button" class="primary">評価を確定</button>
-        </div>
-      </div>
-
-      <form id="evaluationForm">
-        <div id="sectionsContainer"></div>
-
-        <section class="card comment-card">
-          <span class="eyebrow">COMMENT</span>
-          <h2>総合コメント</h2>
-          <label>
-            評価コメント
-            <textarea id="comment" rows="7" placeholder="評価コメントを入力"></textarea>
-          </label>
-        </section>
-
-        <section class="card footer-actions">
-          <p id="saveMessage" class="message" aria-live="polite"></p>
-          <div class="actions">
-            <button type="button" id="saveButton" class="secondary">一時保存</button>
-            <button type="submit" id="submitButton" class="primary">評価を確定</button>
+      <section id="executiveView" class="hidden">
+        <div class="card">
+          <div class="section-head exec-head">
+            <div>
+              <span class="eyebrow">GROWTH MEETING</span>
+              <h2>全社員評価一覧</h2>
+              <p>面談後評価を中心に、成長会議で確認するための一覧です。</p>
+            </div>
+            <div class="filters">
+              <select id="departmentFilter">
+                <option value="">全部署</option>
+              </select>
+              <select id="statusFilter">
+                <option value="">全ステータス</option>
+                <option value="interview_submitted">面談後提出済み</option>
+                <option value="growth_meeting">成長会議</option>
+                <option value="finalized">最終確定</option>
+              </select>
+            </div>
           </div>
-        </section>
-      </form>
+          <div id="executiveTable"></div>
+        </div>
+      </section>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./app.js"></script>
+  <script src="./app.js?v=3.0"></script>
 </body>
 </html>
