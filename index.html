@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>人事評価システム</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section id="loginView" class="card">
+      <div class="brand">
+        <span class="eyebrow">HR EVALUATION</span>
+        <h1>人事評価システム</h1>
+        <p>評価者IDとパスワードを入力してください。</p>
+      </div>
+
+      <form id="loginForm" class="stack">
+        <label>
+          評価者ID
+          <input id="loginId" type="text" autocomplete="username" placeholder="EV0001" required />
+        </label>
+
+        <label>
+          パスワード
+          <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" required />
+        </label>
+
+        <button type="submit" class="primary">ログイン</button>
+        <p id="loginMessage" class="message" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section id="appView" class="hidden">
+      <header class="topbar">
+        <div>
+          <span class="eyebrow">HR EVALUATION</span>
+          <h1>評価入力</h1>
+        </div>
+        <div class="topbar-actions">
+          <span id="evaluatorName" class="user-chip"></span>
+          <button id="logoutButton" class="ghost">ログアウト</button>
+        </div>
+      </header>
+
+      <section class="card employee-card">
+        <div>
+          <span class="eyebrow">評価対象</span>
+          <h2 id="employeeName">-</h2>
+          <p id="employeeMeta">-</p>
+        </div>
+        <span id="statusBadge" class="status-badge">下書き</span>
+      </section>
+
+      <section class="card">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">2026 TEST</span>
+            <h2>評価項目</h2>
+          </div>
+          <p>各項目を1〜5で評価してください。</p>
+        </div>
+
+        <form id="evaluationForm" class="evaluation-form">
+          <div id="scoreFields"></div>
+
+          <label class="comment-field">
+            総合コメント
+            <textarea id="comment" rows="6" placeholder="評価コメントを入力"></textarea>
+          </label>
+
+          <div class="actions">
+            <button type="button" id="saveButton" class="secondary">一時保存</button>
+            <button type="submit" id="submitButton" class="primary">評価を確定</button>
+          </div>
+
+          <p id="saveMessage" class="message" aria-live="polite"></p>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
