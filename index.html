@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>人事評価システム</title>
-  <link rel="stylesheet" href="./style.css?v=4.1">
+  <link rel="stylesheet" href="./style.css?v=5.0">
 </head>
 <body>
   <section id="loginView" class="login-page">
@@ -12,12 +12,12 @@
       <div class="login-brand-inner">
         <div class="brand-mark">HR</div>
         <h1>人事評価システム</h1>
-        <p>成長と評価を、ひとつの仕組みに。</p>
+        <p>評価業務を、迷わず進める。</p>
         <div class="login-feature-list">
-          <div>✓ 自己評価から最終評価まで一元管理</div>
-          <div>✓ 昇給・夏季賞与・冬季賞与に対応</div>
-          <div>✓ 前回評価との比較・コピー</div>
-          <div>✓ 成長会議向け全社員レビュー</div>
+          <div>✓ ログイン権限に応じた専用ホーム</div>
+          <div>✓ 評価の未完了者を優先表示</div>
+          <div>✓ 前回評価の参照・コピー</div>
+          <div>✓ 成長会議対象者の自動抽出</div>
         </div>
       </div>
     </div>
@@ -58,10 +58,12 @@
     </header>
 
     <aside class="sidebar">
-      <div class="sidebar-section-label">MAIN MENU</div>
+      <div class="sidebar-section-label">メイン</div>
       <button class="side-nav active" data-nav="dashboard">
-        <span class="side-icon">▦</span><span>ダッシュボード</span>
+        <span class="side-icon">▦</span><span>ホーム</span>
       </button>
+
+      <div class="sidebar-section-label second">あなたの評価業務</div>
       <button id="selfNav" class="side-nav hidden" data-nav="self">
         <span class="side-icon">◎</span><span>自己評価</span>
       </button>
@@ -75,9 +77,8 @@
         <span class="side-icon">★</span><span>成長会議・最終評価</span>
       </button>
 
-      <div class="sidebar-section-label second">STATUS</div>
+      <div class="sidebar-section-label second">現在の評価回</div>
       <div class="sidebar-status-box">
-        <span>現在の評価回</span>
         <strong id="sidebarCycleName">-</strong>
         <small id="sidebarCycleStatus">-</small>
       </div>
@@ -85,65 +86,49 @@
 
     <main class="main-content">
       <div class="breadcrumb">
-        <span>人事評価</span><span>›</span><strong id="breadcrumbCurrent">ダッシュボード</strong>
+        <span>人事評価</span><span>›</span><strong id="breadcrumbCurrent">ホーム</strong>
       </div>
 
       <div class="page-header">
         <div>
-          <h1 id="pageTitle">ダッシュボード</h1>
-          <p id="pageSubtitle">評価業務の進捗と、対応が必要な項目を確認できます。</p>
+          <h1 id="pageTitle">ホーム</h1>
+          <p id="pageSubtitle">あなたに必要な評価業務だけ表示しています。</p>
         </div>
         <div class="page-header-actions">
-          <button id="homeButton" class="btn btn-secondary hidden">ダッシュボードへ戻る</button>
+          <button id="homeButton" class="btn btn-secondary hidden">ホームへ戻る</button>
         </div>
       </div>
 
+      <!-- HOME -->
       <section id="dashboardView">
-        <div class="dashboard-summary-grid">
-          <section class="summary-kpi">
-            <span>評価回</span>
-            <strong id="currentCycleName">-</strong>
-            <small id="currentCycleMeta">-</small>
-          </section>
-          <section class="summary-kpi">
-            <span>自分の評価</span>
-            <strong id="selfProgressKpi">-</strong>
-            <small>自己評価の進捗</small>
-          </section>
-          <section class="summary-kpi">
-            <span>一次評価対象</span>
-            <strong id="primaryCountKpi">0名</strong>
-            <small>担当する被評価者</small>
-          </section>
-          <section class="summary-kpi">
-            <span>成長会議対象</span>
-            <strong id="executiveCountKpi">0名</strong>
-            <small>役員確認対象</small>
-          </section>
-        </div>
-
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <span class="panel-kicker">AVAILABLE FUNCTIONS</span>
-              <h2>利用可能な評価機能</h2>
-            </div>
-          </div>
-          <div id="permissionCards" class="function-grid"></div>
+        <section id="homeNotice" class="home-notice">
+          <strong>評価状況を確認しています。</strong>
+          <p>未完了の評価がある場合は、この画面に表示します。</p>
         </section>
 
+        <div class="home-cycle-bar">
+          <div>
+            <span>現在の評価回</span>
+            <strong id="currentCycleName">-</strong>
+          </div>
+          <small id="currentCycleMeta">-</small>
+        </div>
+
+        <div id="permissionCards" class="role-card-grid"></div>
+
         <section class="panel">
           <div class="panel-header">
             <div>
-              <span class="panel-kicker">YOUR TASKS</span>
-              <h2>対応が必要な評価</h2>
+              <span class="panel-kicker">PROGRESS</span>
+              <h2>評価の進捗</h2>
+              <p>詳しい流れは各評価の「流れを確認」から必要なときだけ確認できます。</p>
             </div>
-            <span id="taskCountBadge" class="panel-count">0件</span>
           </div>
-          <div id="taskList"></div>
+          <div id="progressOverview"></div>
         </section>
       </section>
 
+      <!-- MANAGED EMPLOYEE LIST -->
       <section id="listView" class="hidden">
         <section class="panel">
           <div class="panel-header">
@@ -153,14 +138,20 @@
               <p id="listDescription"></p>
             </div>
           </div>
+          <div id="listIncompleteNotice" class="list-incomplete-notice"></div>
           <div class="table-toolbar">
             <input id="employeeSearch" class="toolbar-search" placeholder="社員名・社員番号で検索">
             <span id="employeeListCount" class="toolbar-count">0名</span>
+          </div>
+          <div class="list-legend">
+            <span><i class="legend-dot need"></i>対応が必要</span>
+            <span><i class="legend-dot done"></i>完了</span>
           </div>
           <div id="employeeList"></div>
         </section>
       </section>
 
+      <!-- EVALUATION -->
       <section id="evaluationView" class="hidden">
         <section class="employee-info-panel">
           <div class="employee-info-main">
@@ -173,7 +164,7 @@
           </div>
           <div class="evaluation-score-summary">
             <div>
-              <span id="scoreLabel">加重点数</span>
+              <span>加重点数</span>
               <strong id="currentScore">0.0</strong>
               <small>/ 100</small>
             </div>
@@ -190,23 +181,13 @@
             </div>
             <button id="togglePreviousButton" type="button" class="btn btn-secondary">前回評価を表示</button>
           </div>
-
           <div id="previousTools" class="previous-tools hidden">
             <div class="reference-score-row">
-              <div class="reference-score-card">
-                <span>前回の自己評価</span><strong id="prevSelfTotal">-</strong>
-              </div>
-              <div class="reference-score-card">
-                <span>前回の一次評価</span><strong id="prevPrimaryTotal">-</strong>
-              </div>
-              <div class="reference-score-card">
-                <span>前回の面談後評価</span><strong id="prevInterviewTotal">-</strong>
-              </div>
-              <div class="reference-score-card">
-                <span>前回の最終評価</span><strong id="prevFinalTotal">-</strong>
-              </div>
+              <div class="reference-score-card"><span>前回の自己評価</span><strong id="prevSelfTotal">-</strong></div>
+              <div class="reference-score-card"><span>前回の一次評価</span><strong id="prevPrimaryTotal">-</strong></div>
+              <div class="reference-score-card"><span>前回の面談後評価</span><strong id="prevInterviewTotal">-</strong></div>
+              <div class="reference-score-card"><span>前回の最終評価</span><strong id="prevFinalTotal">-</strong></div>
             </div>
-
             <div class="copy-toolbar">
               <div>
                 <strong>前回の評価を今回へ反映</strong>
@@ -219,12 +200,16 @@
                 <button type="button" class="btn btn-secondary section-copy" data-section="department_behavior">④ 能力・行動</button>
               </div>
             </div>
-
             <div id="previousOverview" class="comparison-summary"></div>
           </div>
         </section>
 
         <div id="stageNotice" class="workflow-notice"></div>
+
+        <div id="requiredCommentSummary" class="required-comment-summary hidden">
+          <strong id="requiredCommentCount">コメントが必要な項目が0件あります。</strong>
+          <span>該当項目ごとに理由を入力してください。一時保存はコメント未入力でも可能です。</span>
+        </div>
 
         <div class="evaluation-toolbar">
           <div class="progress-box">
@@ -243,9 +228,13 @@
 
           <section class="panel comment-panel">
             <div class="panel-header">
-              <div><span class="panel-kicker">COMMENT</span><h2 id="commentTitle">コメント</h2></div>
+              <div>
+                <span class="panel-kicker">GENERAL COMMENT</span>
+                <h2 id="commentTitle">コメント</h2>
+                <p>評価全体についての補足がある場合に入力します。</p>
+              </div>
             </div>
-            <textarea id="stageComment" rows="6" placeholder="評価理由、面談内容、補足事項などを入力"></textarea>
+            <textarea id="stageComment" rows="5" placeholder="評価全体の補足事項などを入力"></textarea>
           </section>
 
           <section class="panel form-footer">
@@ -258,48 +247,88 @@
         </form>
       </section>
 
+      <!-- EXECUTIVE -->
       <section id="executiveView" class="hidden">
         <section class="panel">
           <div class="panel-header executive-panel-head">
             <div>
               <span class="panel-kicker">GROWTH MEETING</span>
-              <h2>全社員評価一覧</h2>
+              <h2>社員評価一覧</h2>
               <p id="executiveCycleLabel"></p>
             </div>
             <div class="executive-summary-mini">
-              <div><span>対象者</span><strong id="execTotalPeople">0</strong></div>
+              <div><span>表示人数</span><strong id="execTotalPeople">0</strong></div>
               <div><span>最終確定</span><strong id="execFinalizedPeople">0</strong></div>
-              <div><span>要確認</span><strong id="execDiffPeople">0</strong></div>
+              <div><span>成長会議対象</span><strong id="execTargetPeople">0</strong></div>
             </div>
           </div>
 
           <div class="table-toolbar executive-toolbar">
             <div class="filter-row">
-              <select id="departmentFilter"><option value="">全部署</option></select>
-              <select id="statusFilter">
-                <option value="">全ステータス</option>
-                <option value="self_draft">自己評価 下書き</option>
-                <option value="self_submitted">自己評価 提出済み</option>
-                <option value="primary_draft">一次評価</option>
-                <option value="primary_submitted">一次評価 提出済み</option>
-                <option value="interview_submitted">面談後評価 提出済み</option>
-                <option value="growth_meeting">成長会議</option>
-                <option value="finalized">最終確定</option>
-              </select>
-              <select id="diffFilter">
-                <option value="">差異：すべて</option>
-                <option value="large">差異2点以上あり</option>
-              </select>
+              <label>成長会議対象者
+                <select id="growthTargetFilter">
+                  <option value="target" selected>対象者のみ</option>
+                  <option value="all">全社員</option>
+                </select>
+              </label>
+              <label>部署
+                <select id="departmentFilter"><option value="">全部署</option></select>
+              </label>
+              <label>ステータス
+                <select id="statusFilter">
+                  <option value="">全ステータス</option>
+                  <option value="self_draft">自己評価 下書き</option>
+                  <option value="self_submitted">自己評価 提出済み</option>
+                  <option value="primary_draft">一次評価</option>
+                  <option value="primary_submitted">一次評価 提出済み</option>
+                  <option value="interview_draft">面談後評価</option>
+                  <option value="interview_submitted">面談後評価 提出済み</option>
+                  <option value="growth_meeting">成長会議</option>
+                  <option value="finalized">最終確定</option>
+                </select>
+              </label>
             </div>
           </div>
 
+          <div class="growth-rule-note">
+            成長会議対象者：本人評価と面談後評価の差が2点以上、一次評価と面談後評価の差が2点以上、
+            または面談後評価が「5」「1」の項目が1件以上ある社員。
+          </div>
           <div id="executiveTable"></div>
         </section>
       </section>
     </main>
   </div>
 
+  <!-- FLOW MODAL -->
+  <div id="flowOverlay" class="flow-overlay hidden" aria-hidden="true">
+    <section class="flow-modal" role="dialog" aria-modal="true">
+      <div class="flow-modal-head">
+        <div>
+          <span class="panel-kicker">EVALUATION FLOW</span>
+          <h2 id="flowTitle">評価の流れ</h2>
+        </div>
+        <button type="button" class="btn btn-secondary flow-close">閉じる</button>
+      </div>
+      <div class="flow-modal-body">
+        <p>現在の位置と前後の流れを確認できます。通常は表示せず、必要なときだけ開く説明です。</p>
+        <div id="flowTimeline" class="flow-timeline"></div>
+        <div class="flow-detail">
+          <h3 id="flowDetailTitle">-</h3>
+          <p id="flowDetailText">-</p>
+          <dl>
+            <dt>対象</dt><dd id="flowTarget">-</dd>
+            <dt>次の流れ</dt><dd id="flowNext">-</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="flow-modal-foot">
+        <button type="button" class="btn btn-secondary flow-close">閉じる</button>
+      </div>
+    </section>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./app.js?v=4.1"></script>
+  <script src="./app.js?v=5.0"></script>
 </body>
 </html>
