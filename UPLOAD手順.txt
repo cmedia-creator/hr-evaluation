@@ -1,0 +1,43 @@
+人事評価システム：全社員共通ログイン対応
+
+今回のZIPは、GitHub連携がRead Onlyだったため、手動反映用です。
+
+【やること】
+1. ZIP内の login-bootstrap.js を、GitHubリポジトリ hr-evaluation のルートへアップロード
+   app.js / index.html / style.css と同じ階層です。
+
+2. index.html の末尾付近にある
+
+   <script src="./app.js?v=5.0"></script>
+
+   の直後に、次の1行を追加してください。
+
+   <script src="./login-bootstrap.js?v=1.0"></script>
+
+   つまり最終的に、
+
+   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+   <script src="./app.js?v=5.0"></script>
+   <script src="./login-bootstrap.js?v=1.0"></script>
+
+   となればOKです。
+
+3. GitHub Pages反映後、ブラウザを強制再読み込みしてください。
+   Windows: Ctrl + F5
+
+【変更後のログイン仕様】
+・ID = 社員番号
+・パスワード = 人事評価用マスタに設定したパスワード
+・初回ログイン時だけSupabase Authアカウントを自動生成
+・2回目以降は通常ログイン
+・区分IDに応じて権限を自動設定
+  100 / 101 / 200: 自己評価
+  300: 自己評価 + 一次評価 + 面談後評価
+  400: 役員機能（自己評価なし）
+
+【確認済み】
+社員番号003は、マスタの設定パスワードとDB側の照合が一致しています。
+DB側の bootstrap_employee_account は全社員共通方式へ変更済みです。
+
+【注意】
+このZIPには社員パスワードそのものは含めていません。
