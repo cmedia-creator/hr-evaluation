@@ -3,88 +3,88 @@
 
 /* 1. 全体の可読性を上げる */
 body{
-  font-size:16px;
+  font-size:17px;
   line-height:1.65;
 }
 button,input,textarea,select{
-  font-size:15px;
+  font-size:16px;
 }
 .btn{
-  font-size:14px;
+  font-size:15px;
   padding:10px 16px;
 }
-.global-brand strong{font-size:17px}
-.global-brand span{font-size:12px}
-.cycle-switch span{font-size:13px}
-.account-box{font-size:14px}
-.account-box small{font-size:12px}
-.sidebar-section-label{font-size:12px}
-.side-nav{font-size:15px;padding:13px 12px}
-.sidebar-status-box{font-size:14px}
-.sidebar-status-box small{font-size:12px}
-.breadcrumb{font-size:13px}
-.page-header h1{font-size:28px}
-.page-header p{font-size:14px}
-.panel-kicker,.system-label{font-size:12px}
-.panel-header h2{font-size:19px}
-.panel-header p{font-size:14px}
-.status-chip{font-size:12px}
-.home-notice strong{font-size:18px}
-.home-notice p{font-size:14px}
-.home-cycle-bar span{font-size:12px}
-.home-cycle-bar strong{font-size:19px}
-.role-card-kicker{font-size:12px}
-.role-card h2{font-size:20px}
-.role-card p{font-size:15px}
-.progress-overview-row strong{font-size:15px}
-.progress-overview-row>span:last-child{font-size:13px}
-.toolbar-count{font-size:13px}
-.list-incomplete-notice{font-size:14px}
-.list-incomplete-notice strong{font-size:16px}
-.list-legend{font-size:12px}
-.row-title{font-size:15px}
-.row-meta{font-size:13px}
-.employee-info-main h2{font-size:24px}
-.employee-info-main p{font-size:13px}
-.evaluation-score-summary span{font-size:12px}
-.reference-score-card span{font-size:12px}
-.workflow-notice{font-size:14px}
-.required-comment-summary{font-size:15px}
-.required-comment-summary span{font-size:13px}
-.progress-box span{font-size:12px}
-.eval-section>summary h2{font-size:19px}
-.eval-section>summary p{font-size:13px}
-.section-pill{font-size:12px}
-.category-header h3{font-size:16px}
-.category-header p{font-size:13px}
+.global-brand strong{font-size:18px}
+.global-brand span{font-size:13px}
+.cycle-switch span{font-size:14px}
+.account-box{font-size:15px}
+.account-box small{font-size:13px}
+.sidebar-section-label{font-size:13px}
+.side-nav{font-size:16px;padding:13px 12px}
+.sidebar-status-box{font-size:15px}
+.sidebar-status-box small{font-size:13px}
+.breadcrumb{font-size:14px}
+.page-header h1{font-size:30px}
+.page-header p{font-size:16px}
+.panel-kicker,.system-label{font-size:13px}
+.panel-header h2{font-size:21px}
+.panel-header p{font-size:16px}
+.status-chip{font-size:13px}
+.home-notice strong{font-size:20px}
+.home-notice p{font-size:16px}
+.home-cycle-bar span{font-size:13px}
+.home-cycle-bar strong{font-size:21px}
+.role-card-kicker{font-size:13px}
+.role-card h2{font-size:22px}
+.role-card p{font-size:16px}
+.progress-overview-row strong{font-size:16px}
+.progress-overview-row>span:last-child{font-size:15px}
+.toolbar-count{font-size:14px}
+.list-incomplete-notice{font-size:16px}
+.list-incomplete-notice strong{font-size:18px}
+.list-legend{font-size:13px}
+.row-title{font-size:17px}
+.row-meta{font-size:14px}
+.employee-info-main h2{font-size:26px}
+.employee-info-main p{font-size:15px}
+.evaluation-score-summary span{font-size:13px}
+.reference-score-card span{font-size:13px}
+.workflow-notice{font-size:16px}
+.required-comment-summary{font-size:17px}
+.required-comment-summary span{font-size:15px}
+.progress-box span{font-size:13px}
+.eval-section>summary h2{font-size:21px}
+.eval-section>summary p{font-size:15px}
+.section-pill{font-size:13px}
+.category-header h3{font-size:18px}
+.category-header p{font-size:15px}
 .item-title{
-  font-size:16px;
+  font-size:18px;
   line-height:1.8;
 }
-.meta-chip{font-size:11px}
-.score-mini span{font-size:11px}
-.score-mini strong{font-size:17px}
-.input-box label{font-size:14px}
+.meta-chip{font-size:12px}
+.score-mini span{font-size:12px}
+.score-mini strong{font-size:18px}
+.input-box label{font-size:16px}
 .criteria-box{
-  font-size:13px;
+  font-size:15px;
   line-height:1.7;
 }
-.criteria-details summary{font-size:13px}
+.criteria-details summary{font-size:15px}
 .criteria-row{
   grid-template-columns:32px 1fr;
-  font-size:13px;
+  font-size:15px;
   line-height:1.65;
 }
-.item-note{font-size:13px}
+.item-note{font-size:15px}
 .readonly-note{
-  font-size:13px;
+  font-size:15px;
   line-height:1.7;
 }
-.item-comment-box strong{font-size:13px}
-.item-comment-reasons{font-size:12px}
-.item-comment-readonly strong{font-size:12px}
-.item-comment-readonly p{font-size:13px}
-.message{font-size:14px}
+.item-comment-box strong{font-size:15px}
+.item-comment-reasons{font-size:14px}
+.item-comment-readonly strong{font-size:14px}
+.item-comment-readonly p{font-size:15px}
+.message{font-size:16px}
 
 /* 2. 1～5の数字は大きいまま、選択BOXはコンパクトに */
 .input-box select{
@@ -93,7 +93,7 @@ button,input,textarea,select{
   height:48px;
   margin-top:7px;
   padding:4px 28px 4px 12px;
-  font-size:22px;
+  font-size:23px;
   font-weight:900;
   text-align:center;
   text-align-last:center;
@@ -151,20 +151,20 @@ button,input,textarea,select{
 }
 .employee-switcher-label{
   display:block;
-  font-size:14px;
+  font-size:16px;
   font-weight:900;
   color:#294d6c;
 }
 .employee-switcher-note{
   display:block;
   margin-top:2px;
-  font-size:12px;
+  font-size:14px;
   color:#65778a;
 }
 .employee-switcher select{
   min-width:360px;
   max-width:520px;
-  font-size:15px;
+  font-size:16px;
   font-weight:700;
   padding:10px 12px;
   background:#fff;
@@ -184,7 +184,7 @@ button,input,textarea,select{
 }
 
 @media(max-width:760px){
-  body{font-size:15px}
+  body{font-size:16px}
   .employee-switcher{
     align-items:flex-start;
     flex-direction:column;
