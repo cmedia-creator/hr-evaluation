@@ -1,0 +1,201 @@
+/* 人事評価システム UI改善パッチ 2026-09-10
+   既存 style.css の後から読み込む上書き用CSS */
+
+/* 1. 全体の可読性を上げる */
+body{
+  font-size:16px;
+  line-height:1.65;
+}
+button,input,textarea,select{
+  font-size:15px;
+}
+.btn{
+  font-size:14px;
+  padding:10px 16px;
+}
+.global-brand strong{font-size:17px}
+.global-brand span{font-size:12px}
+.cycle-switch span{font-size:13px}
+.account-box{font-size:14px}
+.account-box small{font-size:12px}
+.sidebar-section-label{font-size:12px}
+.side-nav{font-size:15px;padding:13px 12px}
+.sidebar-status-box{font-size:14px}
+.sidebar-status-box small{font-size:12px}
+.breadcrumb{font-size:13px}
+.page-header h1{font-size:28px}
+.page-header p{font-size:14px}
+.panel-kicker,.system-label{font-size:12px}
+.panel-header h2{font-size:19px}
+.panel-header p{font-size:14px}
+.status-chip{font-size:12px}
+.home-notice strong{font-size:18px}
+.home-notice p{font-size:14px}
+.home-cycle-bar span{font-size:12px}
+.home-cycle-bar strong{font-size:19px}
+.role-card-kicker{font-size:12px}
+.role-card h2{font-size:20px}
+.role-card p{font-size:15px}
+.progress-overview-row strong{font-size:15px}
+.progress-overview-row>span:last-child{font-size:13px}
+.toolbar-count{font-size:13px}
+.list-incomplete-notice{font-size:14px}
+.list-incomplete-notice strong{font-size:16px}
+.list-legend{font-size:12px}
+.row-title{font-size:15px}
+.row-meta{font-size:13px}
+.employee-info-main h2{font-size:24px}
+.employee-info-main p{font-size:13px}
+.evaluation-score-summary span{font-size:12px}
+.reference-score-card span{font-size:12px}
+.workflow-notice{font-size:14px}
+.required-comment-summary{font-size:15px}
+.required-comment-summary span{font-size:13px}
+.progress-box span{font-size:12px}
+.eval-section>summary h2{font-size:19px}
+.eval-section>summary p{font-size:13px}
+.section-pill{font-size:12px}
+.category-header h3{font-size:16px}
+.category-header p{font-size:13px}
+.item-title{
+  font-size:16px;
+  line-height:1.8;
+}
+.meta-chip{font-size:11px}
+.score-mini span{font-size:11px}
+.score-mini strong{font-size:17px}
+.input-box label{font-size:14px}
+.criteria-box{
+  font-size:13px;
+  line-height:1.7;
+}
+.criteria-details summary{font-size:13px}
+.criteria-row{
+  grid-template-columns:32px 1fr;
+  font-size:13px;
+  line-height:1.65;
+}
+.item-note{font-size:13px}
+.readonly-note{
+  font-size:13px;
+  line-height:1.7;
+}
+.item-comment-box strong{font-size:13px}
+.item-comment-reasons{font-size:12px}
+.item-comment-readonly strong{font-size:12px}
+.item-comment-readonly p{font-size:13px}
+.message{font-size:14px}
+
+/* 2. 1～5の数字は大きいまま、選択BOXはコンパクトに */
+.input-box select{
+  width:112px;
+  min-width:112px;
+  height:48px;
+  margin-top:7px;
+  padding:4px 28px 4px 12px;
+  font-size:22px;
+  font-weight:900;
+  text-align:center;
+  text-align-last:center;
+  border-radius:6px;
+}
+.input-box{
+  display:block;
+}
+.item-side{
+  align-self:stretch;
+}
+
+/* 3. 提出時の未入力項目を強調 */
+.missing-input-summary{
+  margin:0 0 12px;
+  padding:14px 16px;
+  background:#fff0ef;
+  border:2px solid #cf514a;
+  border-left:7px solid #b93b34;
+  color:#7c2621;
+}
+.missing-input-summary strong{
+  display:block;
+  font-size:17px;
+  margin-bottom:3px;
+}
+.missing-input-summary span{
+  display:block;
+  font-size:14px;
+}
+.eval-item.missing-input{
+  border:2px solid #cf514a;
+  border-left:7px solid #b93b34;
+  background:#fff8f7;
+}
+.eval-item.missing-input .item-side{
+  background:#fff0ef;
+}
+.eval-item.missing-input select{
+  border:2px solid #c73f38;
+  box-shadow:0 0 0 3px rgba(199,63,56,.12);
+}
+
+/* 4. 一次評価・面談後評価の社員切替 */
+.employee-switcher{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:12px;
+  padding:12px 16px;
+  border:1px solid #b8ccde;
+  border-left:5px solid #2468a9;
+  background:#eef5fb;
+}
+.employee-switcher-label{
+  display:block;
+  font-size:14px;
+  font-weight:900;
+  color:#294d6c;
+}
+.employee-switcher-note{
+  display:block;
+  margin-top:2px;
+  font-size:12px;
+  color:#65778a;
+}
+.employee-switcher select{
+  min-width:360px;
+  max-width:520px;
+  font-size:15px;
+  font-weight:700;
+  padding:10px 12px;
+  background:#fff;
+}
+
+/* 5. 役員専用の「期待の成果」領域は初期状態を閉じる */
+.eval-section.executive-only-collapsible>summary{
+  background:#f1f4f7;
+}
+.eval-section.executive-only-collapsible>summary h2{
+  color:#3f5264;
+}
+.eval-section.executive-only-collapsible .section-pill{
+  background:#e9eef3;
+  border-color:#c7d1db;
+  color:#465a6d;
+}
+
+@media(max-width:760px){
+  body{font-size:15px}
+  .employee-switcher{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .employee-switcher select{
+    min-width:0;
+    width:100%;
+    max-width:none;
+  }
+  .input-box select{
+    width:104px;
+    min-width:104px;
+  }
+}
