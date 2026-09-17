@@ -202,3 +202,20 @@
   // 既存の提出ボタンは saveStage(true) を呼ぶため、上記差し替えで両方に効く。
   uiImpEnsureMissingBanner();
 })();
+
+// 連続入力モードを追加読み込み。既存の個人入力はそのまま残す。
+(() => {
+  if (!document.querySelector('link[data-continuous-input]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = './continuous-input.css?v=1.0';
+    link.dataset.continuousInput = 'true';
+    document.head.appendChild(link);
+  }
+  if (!document.querySelector('script[data-continuous-input]')) {
+    const script = document.createElement('script');
+    script.src = './continuous-input.js?v=1.0';
+    script.dataset.continuousInput = 'true';
+    document.body.appendChild(script);
+  }
+})();
