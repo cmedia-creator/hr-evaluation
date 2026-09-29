@@ -1,4 +1,4 @@
-/* 人事評価システム 連続入力モード v1.2 */
+/* 人事評価システム 連続入力モード v1.3 */
 .continuous-hidden{display:none!important}
 
 .input-mode-switcher{
@@ -187,4 +187,20 @@
   .continuous-score-button{width:45px;height:42px}
   .continuous-footer{align-items:flex-start;flex-direction:column}
   .continuous-footer .btn{width:100%}
+}
+
+
+/* 任意コメント */
+.continuous-comment-toggle-row{
+  margin-top:9px;
+}
+.continuous-comment-toggle-row.hidden{
+  display:none;
+}
+.continuous-comment-toggle{
+  padding:7px 10px;
+  font-size:12px;
+}
+.continuous-required strong[data-ci-comment-heading]{
+  color:#76531c;
 }
