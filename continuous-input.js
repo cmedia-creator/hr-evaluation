@@ -1,4 +1,4 @@
-// 人事評価システム 連続入力モード v1.0
+// 人事評価システム 連続入力モード v1.1
 // 一次評価・面談後評価で、1項目ごとに担当社員を横断して入力する。
 
 (() => {
@@ -34,9 +34,18 @@
     return stage === "primary" ? "primary_can_score" : "interview_can_score";
   }
 
+  function ciNormalizeKeyText(value) {
+    return String(value || "")
+      .replaceAll("\\n", "\n")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
   function ciGroupKey(item) {
-    if (item.item_code) return `code:${item.item_code}`;
-    return `text:${item.section}|${item.category || ""}|${String(item.item_text || "").trim()}`;
+    // item_code はテンプレートごとに別IDになっているため、
+    // 連続入力では同じ質問でも社員ごとに別グループへ分断されてしまう。
+    // セクション・カテゴリ・質問文で同一質問をまとめる。
+    return `semantic:${item.section}|${ciNormalizeKeyText(item.category)}|${ciNormalizeKeyText(item.item_text)}`;
   }
 
   function ciScore(record, item, stage) {
@@ -268,6 +277,8 @@
     const info = ciCriteriaInfo(group);
     const stageLabel = ciState.stage === "primary" ? "一次評価" : "面談後評価";
     const missing = group.rows.filter(({record,item}) => !ciScore(record,item,ciState.stage)).length;
+    const managedTotal = getManagedRecords().length;
+    const nonTarget = Math.max(0, managedTotal - group.rows.length);
 
     panel.innerHTML = `
       <div class="continuous-sticky-head">
@@ -298,6 +309,7 @@
         <h2>${esc(group.itemText)}</h2>
         <div class="continuous-question-meta">
           <span>対象 ${group.rows.length}名</span>
+          ${nonTarget ? `<span>この項目の対象外 ${nonTarget}名</span>` : ""}
           <span class="${missing ? "warn-text" : "done-text"}">未入力 ${missing}名</span>
           <span>数字キー1〜5でも入力できます</span>
         </div>

@@ -208,13 +208,13 @@
   if (!document.querySelector('link[data-continuous-input]')) {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = './continuous-input.css?v=1.0';
+    link.href = './continuous-input.css?v=1.1';
     link.dataset.continuousInput = 'true';
     document.head.appendChild(link);
   }
   if (!document.querySelector('script[data-continuous-input]')) {
     const script = document.createElement('script');
-    script.src = './continuous-input.js?v=1.0';
+    script.src = './continuous-input.js?v=1.1';
     script.dataset.continuousInput = 'true';
     document.body.appendChild(script);
   }
