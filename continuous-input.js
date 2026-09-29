@@ -1,4 +1,4 @@
-// 人事評価システム 連続入力モード v1.2
+// 人事評価システム 連続入力モード v1.3
 // 一次評価・面談後評価で、1項目ごとに担当社員を横断して入力する。
 
 (() => {
@@ -54,16 +54,24 @@
     return Number(source[itemKey(item.id)] || 0) || null;
   }
 
+  function ciCommentField(stage) {
+    return stage === "primary"
+      ? "primary_item_comments"
+      : "interview_item_comments";
+  }
+
   function ciComments(record) {
-    return ciState.draftComments.get(record.id) || record.interview_item_comments || {};
+    const field = ciCommentField(ciState.stage);
+    return ciState.draftComments.get(record.id) || record[field] || {};
   }
 
   function ciEnsureDraft(record, stage) {
     if (!ciState.draftScores.has(record.id)) {
       ciState.draftScores.set(record.id, { ...(record[ciStageField(stage)] || {}) });
     }
-    if (stage === "interview" && !ciState.draftComments.has(record.id)) {
-      ciState.draftComments.set(record.id, { ...(record.interview_item_comments || {}) });
+    if (!ciState.draftComments.has(record.id)) {
+      const field = ciCommentField(stage);
+      ciState.draftComments.set(record.id, { ...(record[field] || {}) });
     }
   }
 
@@ -224,9 +232,8 @@
     const reasons = ciState.stage === "interview"
       ? requiredInterviewReasons(record, item, current)
       : [];
-    const comment = ciState.stage === "interview"
-      ? String(ciComments(record)[itemKey(item.id)] || "")
-      : "";
+    const comment = String(ciComments(record)[itemKey(item.id)] || "");
+    const commentOpen = !!reasons.length || !!comment.trim();
     const rowCriteria = scoreCriteria(item, ciState.stage) || {};
 
     return `
@@ -244,10 +251,15 @@
             ${[1,2,3,4,5].map(n => `<button type="button" class="continuous-score-button ${current === n ? "selected" : ""}" data-ci-score="${n}">${n}</button>`).join("")}
             <button type="button" class="continuous-clear-button" data-ci-clear title="未入力に戻す">×</button>
           </div>
-          <div class="continuous-required ${reasons.length ? "" : "hidden"}" data-ci-required>
-            <strong>理由コメント必須</strong>
-            <span data-ci-reasons>${esc(reasons.join(" / "))}</span>
-            <textarea data-ci-comment rows="2" placeholder="評価理由を入力してください。">${esc(comment)}</textarea>
+          <div class="continuous-comment-toggle-row ${reasons.length ? "hidden" : ""}" data-ci-comment-toggle-row>
+            <button type="button" class="btn btn-secondary continuous-comment-toggle" data-ci-comment-toggle>
+              ${commentOpen ? "コメントを閉じる" : "コメントを残す"}
+            </button>
+          </div>
+          <div class="continuous-required ${commentOpen ? "" : "hidden"}" data-ci-required data-ci-comment-open="${commentOpen && !reasons.length ? "1" : "0"}">
+            <strong data-ci-comment-heading>${reasons.length ? "理由コメント必須" : "任意コメント"}</strong>
+            <span class="${reasons.length ? "" : "hidden"}" data-ci-reasons>${esc(reasons.join(" / "))}</span>
+            <textarea data-ci-comment rows="2" placeholder="${reasons.length ? "評価理由を入力してください。" : "必要に応じてコメントを入力してください。"}">${esc(comment)}</textarea>
           </div>
           <details class="continuous-row-criteria hidden" data-ci-row-criteria>
             <summary>この社員の評価基準</summary>
@@ -370,6 +382,16 @@
       rowEl.querySelector("[data-ci-clear]")?.addEventListener("click", () => {
         ciSetScore(Number(rowEl.dataset.ciRow), null);
       });
+      rowEl.querySelector("[data-ci-comment-toggle]")?.addEventListener("click", () => {
+        const box = rowEl.querySelector("[data-ci-required]");
+        const button = rowEl.querySelector("[data-ci-comment-toggle]");
+        if (!box || !button) return;
+        const open = box.classList.contains("hidden");
+        box.classList.toggle("hidden", !open);
+        box.dataset.ciCommentOpen = open ? "1" : "0";
+        button.textContent = open ? "コメントを閉じる" : "コメントを残す";
+        if (open) box.querySelector("textarea")?.focus();
+      });
       rowEl.querySelector("[data-ci-comment]")?.addEventListener("input", e => {
         ciSetComment(Number(rowEl.dataset.ciRow), e.target.value);
       });
@@ -420,9 +442,19 @@
     if (ciState.stage === "interview") {
       const reasons = requiredInterviewReasons(record, item, value);
       const requiredBox = rowEl?.querySelector("[data-ci-required]");
-      requiredBox?.classList.toggle("hidden", !reasons.length);
       const reasonEl = rowEl?.querySelector("[data-ci-reasons]");
+      const heading = rowEl?.querySelector("[data-ci-comment-heading]");
+      const toggleRow = rowEl?.querySelector("[data-ci-comment-toggle-row]");
+      const toggle = rowEl?.querySelector("[data-ci-comment-toggle]");
+      const manuallyOpen = requiredBox?.dataset.ciCommentOpen === "1";
+      const required = !!reasons.length;
+
+      requiredBox?.classList.toggle("hidden", !required && !manuallyOpen);
+      reasonEl?.classList.toggle("hidden", !required);
+      toggleRow?.classList.toggle("hidden", required);
       if (reasonEl) reasonEl.textContent = reasons.join(" / ");
+      if (heading) heading.textContent = required ? "理由コメント必須" : "任意コメント";
+      if (toggle) toggle.textContent = manuallyOpen ? "コメントを閉じる" : "コメントを残す";
     }
 
     const missing = rows.filter(({record:r,item:i}) => !ciScore(r,i,ciState.stage)).length;
@@ -501,9 +533,10 @@
         [field]: { ...(ciState.draftScores.get(id) || record[field] || {}) },
         updated_at: new Date().toISOString()
       };
-      if (stage === "interview") {
-        patch.interview_item_comments = { ...(ciState.draftComments.get(id) || record.interview_item_comments || {}) };
-      }
+      const commentField = ciCommentField(stage);
+      patch[commentField] = {
+        ...(ciState.draftComments.get(id) || record[commentField] || {})
+      };
 
       const {data,error} = await client.from("evaluation_records").update(patch).eq("id", id).select("*").single();
       if (error) {
@@ -514,7 +547,7 @@
       const idx = allRecords.findIndex(r => r.id === data.id);
       if (idx >= 0) allRecords[idx] = data;
       ciState.draftScores.set(id, { ...(data[field] || {}) });
-      if (stage === "interview") ciState.draftComments.set(id, { ...(data.interview_item_comments || {}) });
+      ciState.draftComments.set(id, { ...(data[ciCommentField(stage)] || {}) });
       ciState.dirtyRecords.delete(id);
       saved++;
     }
