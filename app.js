@@ -328,9 +328,18 @@ function setupPreviousPanel(){
   $("copyAllButton").onclick=()=>copyPrevious();
   document.querySelectorAll(".section-copy").forEach(b=>b.onclick=()=>copyPrevious(b.dataset.section));
 }
+function normalizeEvaluationItemText(value){
+  return String(value||"").replaceAll("\\n","\n").replace(/\s+/g," ").trim();
+}
 function previousScoreFor(item,field){
   if(!previousRecord)return null;
-  const pi=previousItems.find(i=>i.item_code&&i.item_code===item.item_code);
+  const pi=
+    previousItems.find(i=>i.item_code&&i.item_code===item.item_code)||
+    previousItems.find(i=>
+      i.section===item.section&&
+      normalizeEvaluationItemText(i.category)===normalizeEvaluationItemText(item.category)&&
+      normalizeEvaluationItemText(i.item_text)===normalizeEvaluationItemText(item.item_text)
+    );
   return pi?Number(previousRecord[field]?.[itemKey(pi.id)]||0)||null:null;
 }
 function sourceFieldForStage(){
@@ -544,7 +553,11 @@ function updateEvalSummary(){
   $("inputProgress").textContent=`${Object.keys(scores).length} / ${eligible.length}`;
   $("inputProgressFill").style.width=`${eligible.length?Math.min(100,Object.keys(scores).length/eligible.length*100):0}%`;
   let value=0;
-  if(activeStage==="executive")value=weighted(activeItems,{...activeRecord.final_scores,...scores});
+  if(activeStage==="executive")value=weighted(activeItems,{
+    ...(activeRecord.interview_scores||{}),
+    ...(activeRecord.final_scores||{}),
+    ...scores
+  });
   else value=weighted(eligible,scores);
   $("currentScore").textContent=value.toFixed(1);
   $("scoreMeterFill").style.width=`${Math.min(100,Math.max(0,value))}%`;
@@ -573,7 +586,10 @@ async function saveStage(submit=false){
   if(activeStage==="primary"&&submit){patch.workflow_status="primary_submitted";patch.primary_submitted_at=new Date().toISOString()}
   if(activeStage==="interview"&&submit){patch.workflow_status="interview_submitted";patch.interview_submitted_at=new Date().toISOString()}
   if(activeStage==="executive"){
-    const exec={...(activeRecord.executive_scores||{})},final={...(activeRecord.final_scores||{})};
+    const exec={...(activeRecord.executive_scores||{})},final={
+      ...(activeRecord.interview_scores||{}),
+      ...(activeRecord.final_scores||{})
+    };
     activeItems.forEach(i=>{
       const v=scores[itemKey(i.id)];if(!v)return;
       if(i.section==="company_results")exec[itemKey(i.id)]=v;
