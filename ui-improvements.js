@@ -1,5 +1,5 @@
 // 人事評価システム UI/入力検証改善パッチ 2026-09-10
-// app.js 読み込み後に実行する。v1.3
+// app.js 読み込み後に実行する。v1.4
 
 (() => {
   const uiImpOriginalRenderSections = renderSections;
@@ -7,6 +7,130 @@
   const uiImpOriginalSaveStage = saveStage;
   let uiImpBulkPasting = false;
   let uiImpCopiedEvaluation = null;
+  let uiImpManualScoreMode = false;
+  let uiImpStickyObserver = null;
+
+  function uiImpUpdateStickyOffsets() {
+    const panel = document.querySelector("#evaluationView .employee-info-panel");
+    if (!panel || panel.offsetParent === null) return;
+    const stickyTop = 64 + panel.offsetHeight;
+    document.documentElement.style.setProperty(
+      "--eval-section-sticky-top",
+      `${stickyTop}px`
+    );
+  }
+
+  function uiImpSetupStickySectionTitles() {
+    const panel = document.querySelector("#evaluationView .employee-info-panel");
+    if (!panel) return;
+
+    uiImpStickyObserver?.disconnect();
+    uiImpStickyObserver = new ResizeObserver(() => uiImpUpdateStickyOffsets());
+    uiImpStickyObserver.observe(panel);
+    requestAnimationFrame(uiImpUpdateStickyOffsets);
+  }
+
+  function uiImpApplyManualScoreMode() {
+    document
+      .querySelectorAll("#evaluationSections .score-input-mode-row")
+      .forEach(row => {
+        const select = row.querySelector("select[data-item]");
+        const input = row.querySelector("[data-manual-score]");
+        const button = row.querySelector("[data-manual-score-toggle]");
+        if (!select || !input || !button) return;
+
+        input.value = select.value || "";
+        select.classList.toggle("manual-score-hidden", uiImpManualScoreMode);
+        input.classList.toggle("hidden", !uiImpManualScoreMode);
+        button.textContent = uiImpManualScoreMode ? "解除" : "手入力";
+        button.classList.toggle("manual-active", uiImpManualScoreMode);
+      });
+  }
+
+  function uiImpSetManualScoreMode(enabled, focusItemId = null) {
+    if (!enabled && uiImpManualScoreMode) {
+      alert(
+        "手入力モードを解除します。手入力した内容は、一時保存または提出を行うまでデータベースには保存されません。"
+      );
+    }
+
+    uiImpManualScoreMode = enabled;
+    uiImpApplyManualScoreMode();
+
+    if (enabled && focusItemId != null) {
+      setTimeout(() => {
+        document
+          .querySelector(`[data-manual-score="${focusItemId}"]`)
+          ?.focus();
+      }, 0);
+    }
+  }
+
+  function uiImpSetupManualScoreInputs() {
+    document
+      .querySelectorAll("#evaluationSections .input-box select[data-item]")
+      .forEach(select => {
+        let row = select.closest(".score-input-mode-row");
+
+        if (!row) {
+          row = document.createElement("div");
+          row.className = "score-input-mode-row";
+          select.parentNode.insertBefore(row, select);
+          row.appendChild(select);
+
+          const input = document.createElement("input");
+          input.type = "text";
+          input.inputMode = "numeric";
+          input.maxLength = 1;
+          input.autocomplete = "off";
+          input.className = "manual-score-input hidden";
+          input.dataset.manualScore = select.dataset.item;
+          input.setAttribute("aria-label", "評価点を手入力");
+          input.setAttribute("placeholder", "1～5");
+          row.appendChild(input);
+
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "btn btn-secondary manual-score-toggle";
+          button.dataset.manualScoreToggle = select.dataset.item;
+          button.textContent = "手入力";
+          row.appendChild(button);
+
+          input.addEventListener("beforeinput", event => {
+            if (
+              event.data &&
+              !/^[1-5]$/.test(event.data)
+            ) {
+              event.preventDefault();
+            }
+          });
+
+          input.addEventListener("input", () => {
+            const value = input.value;
+            if (value === "") {
+              select.value = "";
+              select.dispatchEvent(new Event("change", { bubbles: true }));
+              return;
+            }
+            if (!/^[1-5]$/.test(value)) {
+              input.value = select.value || "";
+              return;
+            }
+            select.value = value;
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+          });
+
+          button.addEventListener("click", () => {
+            uiImpSetManualScoreMode(
+              !uiImpManualScoreMode,
+              select.dataset.item
+            );
+          });
+        }
+      });
+
+    uiImpApplyManualScoreMode();
+  }
 
   function uiImpNormalizeKeyText(value) {
     return String(value || "")
@@ -446,6 +570,8 @@
     uiImpOriginalRenderSections();
     uiImpCollapseExecutiveOnlySection();
     uiImpBindMissingClear();
+    uiImpSetupManualScoreInputs();
+    requestAnimationFrame(uiImpUpdateStickyOffsets);
   };
 
   openEvaluation = async function (recordId, stage) {
@@ -453,6 +579,7 @@
     await uiImpOriginalOpenEvaluation(recordId, stage);
     uiImpRenderEmployeeSwitcher();
     uiImpRenderCopyPasteActions();
+    uiImpSetupStickySectionTitles();
   };
 
   saveStage = async function (submit = false) {
@@ -469,13 +596,13 @@
   if (!document.querySelector('link[data-continuous-input]')) {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = './continuous-input.css?v=1.2';
+    link.href = './continuous-input.css?v=1.3';
     link.dataset.continuousInput = 'true';
     document.head.appendChild(link);
   }
   if (!document.querySelector('script[data-continuous-input]')) {
     const script = document.createElement('script');
-    script.src = './continuous-input.js?v=1.2';
+    script.src = './continuous-input.js?v=1.3';
     script.dataset.continuousInput = 'true';
     document.body.appendChild(script);
   }
