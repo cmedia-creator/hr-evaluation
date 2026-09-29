@@ -256,3 +256,74 @@ button,input,textarea,select{
     text-align:left;
   }
 }
+
+
+/* 8. 社員一覧に評価点を表示 */
+.employee-row.employee-row-with-scores{
+  grid-template-columns:48px minmax(190px,1fr) minmax(210px,auto) auto auto;
+}
+.employee-list-person{min-width:0}
+.employee-list-scores{
+  display:flex;
+  align-items:stretch;
+  gap:7px;
+}
+.employee-list-score{
+  min-width:76px;
+  padding:7px 9px;
+  text-align:center;
+  background:#f4f7fa;
+  border:1px solid #d7e0e8;
+  border-radius:5px;
+}
+.employee-list-score span{
+  display:block;
+  font-size:12px;
+  color:#6f7e8e;
+  font-weight:800;
+}
+.employee-list-score strong{
+  display:block;
+  margin-top:1px;
+  font-size:20px;
+  line-height:1.15;
+  color:#234f74;
+}
+.employee-list-score small{
+  display:block;
+  margin-top:2px;
+  font-size:10px;
+  color:#8693a1;
+  white-space:nowrap;
+}
+.employee-score-loading{
+  padding:24px 18px;
+  color:#66778a;
+  font-size:15px;
+  text-align:center;
+}
+
+@media(max-width:1100px){
+  .employee-row.employee-row-with-scores{
+    grid-template-columns:48px minmax(170px,1fr) auto auto;
+  }
+  .employee-row.employee-row-with-scores .employee-list-scores{
+    grid-column:2 / -1;
+    grid-row:2;
+    justify-content:flex-start;
+  }
+}
+@media(max-width:760px){
+  .employee-row.employee-row-with-scores{
+    grid-template-columns:42px minmax(0,1fr) auto;
+  }
+  .employee-row.employee-row-with-scores .employee-list-scores{
+    grid-column:1 / -1;
+    grid-row:auto;
+    flex-wrap:wrap;
+  }
+  .employee-row.employee-row-with-scores > .btn{
+    grid-column:1 / -1;
+    width:100%;
+  }
+}
