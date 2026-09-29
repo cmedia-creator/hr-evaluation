@@ -1,5 +1,5 @@
 // 人事評価システム UI/入力検証改善パッチ 2026-09-10
-// app.js 読み込み後に実行する。v1.7
+// app.js 読み込み後に実行する。v1.8
 
 (() => {
   const uiImpOriginalRenderSections = renderSections;
@@ -12,21 +12,33 @@
 
   function uiImpUpdateStickyOffsets() {
     const panel = document.querySelector("#evaluationView .employee-info-panel");
+    const toolbar = document.querySelector("#evaluationView .evaluation-toolbar");
     if (!panel || panel.offsetParent === null) return;
-    const stickyTop = 64 + panel.offsetHeight;
+
+    const toolbarTop = 64 + panel.offsetHeight + 8;
+    const sectionTop =
+      toolbarTop +
+      (toolbar && toolbar.offsetParent !== null ? toolbar.offsetHeight + 8 : 0);
+
+    document.documentElement.style.setProperty(
+      "--eval-toolbar-sticky-top",
+      `${toolbarTop}px`
+    );
     document.documentElement.style.setProperty(
       "--eval-section-sticky-top",
-      `${stickyTop}px`
+      `${sectionTop}px`
     );
   }
 
   function uiImpSetupStickySectionTitles() {
     const panel = document.querySelector("#evaluationView .employee-info-panel");
+    const toolbar = document.querySelector("#evaluationView .evaluation-toolbar");
     if (!panel) return;
 
     uiImpStickyObserver?.disconnect();
     uiImpStickyObserver = new ResizeObserver(() => uiImpUpdateStickyOffsets());
     uiImpStickyObserver.observe(panel);
+    if (toolbar) uiImpStickyObserver.observe(toolbar);
     requestAnimationFrame(uiImpUpdateStickyOffsets);
   }
 
