@@ -1,4 +1,4 @@
-// 人事評価システム 連続入力モード v1.3
+// 人事評価システム 連続入力モード v1.4
 // 一次評価・面談後評価で、1項目ごとに担当社員を横断して入力する。
 
 (() => {
@@ -463,6 +463,17 @@
       missingSpan.textContent = `未入力 ${missing}名`;
       missingSpan.className = missing ? "warn-text" : "done-text";
       missingSpan.dataset.ciMissing = "";
+    }
+
+    const requiresComment =
+      ciState.stage === "interview" &&
+      requiredInterviewReasons(record, item, value).length > 0;
+
+    if (value && requiresComment) {
+      setTimeout(() => {
+        rowEl?.querySelector("[data-ci-comment]")?.focus();
+      }, 0);
+      return;
     }
 
     if (value && rowIndex < rows.length - 1) {
