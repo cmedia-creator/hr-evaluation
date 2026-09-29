@@ -1,4 +1,4 @@
-// 人事評価システム 連続入力モード v1.1
+// 人事評価システム 連続入力モード v1.2
 // 一次評価・面談後評価で、1項目ごとに担当社員を横断して入力する。
 
 (() => {
@@ -310,7 +310,7 @@
         <div class="continuous-question-meta">
           <span>対象 ${group.rows.length}名</span>
           ${nonTarget ? `<span>この項目の対象外 ${nonTarget}名</span>` : ""}
-          <span class="${missing ? "warn-text" : "done-text"}">未入力 ${missing}名</span>
+          <span data-ci-missing class="${missing ? "warn-text" : "done-text"}">未入力 ${missing}名</span>
           <span>数字キー1〜5でも入力できます</span>
         </div>
         <details class="continuous-criteria" open>
@@ -426,17 +426,26 @@
     }
 
     const missing = rows.filter(({record:r,item:i}) => !ciScore(r,i,ciState.stage)).length;
-    const meta = document.querySelector(".continuous-question-meta");
-    if (meta) {
-      const spans = meta.querySelectorAll("span");
-      const missingSpan = spans[1];
-      if (missingSpan) {
-        missingSpan.textContent = `未入力 ${missing}名`;
-        missingSpan.className = missing ? "warn-text" : "done-text";
-      }
+    const missingSpan = document.querySelector("[data-ci-missing]");
+    if (missingSpan) {
+      missingSpan.textContent = `未入力 ${missing}名`;
+      missingSpan.className = missing ? "warn-text" : "done-text";
+      missingSpan.dataset.ciMissing = "";
     }
 
-    if (value && rowIndex < rows.length - 1) ciSetActiveRow(rowIndex + 1);
+    if (value && rowIndex < rows.length - 1) {
+      ciSetActiveRow(rowIndex + 1);
+      requestAnimationFrame(() => {
+        document.querySelector(`[data-ci-row="${rowIndex + 1}"]`)
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    } else if (
+      value &&
+      rowIndex === rows.length - 1 &&
+      ciState.itemIndex < ciState.catalog.length - 1
+    ) {
+      setTimeout(() => ciMoveItem(1), 180);
+    }
   }
 
   function ciSetComment(rowIndex, text) {
