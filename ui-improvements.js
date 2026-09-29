@@ -1,5 +1,5 @@
 // 人事評価システム UI/入力検証改善パッチ 2026-09-10
-// app.js 読み込み後に実行する。v1.2
+// app.js 読み込み後に実行する。v1.3
 
 (() => {
   const uiImpOriginalRenderSections = renderSections;
@@ -322,6 +322,125 @@
       };
     }
   }
+
+  let uiImpEmployeeListRenderSeq = 0;
+
+  function uiImpScoreSummary(record, items, stage) {
+    const meta = STAGE_META[stage];
+    const eligible = items.filter(item => !!item[meta.can]);
+    const scores = record[meta.field] || {};
+    const entered = eligible.filter(
+      item => Number(scores[itemKey(item.id)] || 0) > 0
+    ).length;
+
+    return {
+      value: entered ? weighted(eligible, scores) : null,
+      entered,
+      total: eligible.length
+    };
+  }
+
+  function uiImpScoreBadge(label, summary) {
+    const value = summary.value == null ? "-" : summary.value.toFixed(1);
+    return `
+      <div class="employee-list-score">
+        <span>${esc(label)}</span>
+        <strong>${value}</strong>
+        <small>${summary.entered} / ${summary.total}項目</small>
+      </div>
+    `;
+  }
+
+  renderEmployeeRows = async function (stage, q) {
+    const renderSeq = ++uiImpEmployeeListRenderSeq;
+    let targets = getManagedRecords().filter(record => {
+      const employee = employeeMap.get(record.employee_id);
+      const haystack = `${employee?.name || ""} ${employee?.employee_code || ""}`.toLowerCase();
+      return !q || haystack.includes(q);
+    });
+
+    targets.sort((a, b) => {
+      const aComplete = recordCompleteForStage(a, stage);
+      const bComplete = recordCompleteForStage(b, stage);
+      if (aComplete !== bComplete) return aComplete ? 1 : -1;
+
+      return String(employeeMap.get(a.employee_id)?.employee_code || "")
+        .localeCompare(
+          String(employeeMap.get(b.employee_id)?.employee_code || ""),
+          "ja",
+          { numeric: true }
+        );
+    });
+
+    const incomplete = targets.filter(
+      record => !recordCompleteForStage(record, stage)
+    ).length;
+
+    $("employeeListCount").textContent = `${targets.length}名`;
+    $("listIncompleteNotice").innerHTML =
+      `<strong>${incomplete}名の${stage === "primary" ? "一次評価" : "面談後評価"}が完了していません。${incomplete ? "対応が必要です。" : ""}</strong><br>未完了の社員は一覧上部に表示しています。`;
+
+    if (!targets.length) {
+      $("employeeList").innerHTML =
+        '<div class="employee-score-loading">該当する社員はいません。</div>';
+      return;
+    }
+
+    $("employeeList").innerHTML =
+      '<div class="employee-score-loading">点数を集計しています...</div>';
+
+    const templateIds = [...new Set(targets.map(record => record.template_id))];
+    const templateEntries = await Promise.all(
+      templateIds.map(async templateId => [
+        templateId,
+        await getItems(templateId)
+      ])
+    );
+    const itemsByTemplate = new Map(templateEntries);
+
+    if (renderSeq !== uiImpEmployeeListRenderSeq || activeStage !== stage) return;
+
+    $("employeeList").innerHTML = targets.map(record => {
+      const employee = employeeMap.get(record.employee_id);
+      const complete = recordCompleteForStage(record, stage);
+      const items = itemsByTemplate.get(record.template_id) || [];
+
+      const selfScore = uiImpScoreSummary(record, items, "self");
+      const primaryScore = uiImpScoreSummary(record, items, "primary");
+      const interviewScore =
+        stage === "interview"
+          ? uiImpScoreSummary(record, items, "interview")
+          : null;
+
+      const scoreMarkup = `
+        <div class="employee-list-scores" aria-label="${esc(employee?.name || "")}の評価点">
+          ${uiImpScoreBadge("自己", selfScore)}
+          ${uiImpScoreBadge("一次", primaryScore)}
+          ${interviewScore ? uiImpScoreBadge("面談後", interviewScore) : ""}
+        </div>
+      `;
+
+      return `
+        <div class="employee-row employee-row-with-scores ${complete ? "complete" : "need-action"}">
+          <div class="row-avatar">${esc(employeeInitial(employee?.name))}</div>
+          <div class="employee-list-person">
+            <div class="row-title">${esc(employee?.name || "-")}</div>
+            <div class="row-meta">${esc(employee?.employee_code || "")} / ${esc(employee?.department || "")} / ${esc(employee?.job_level || "")}</div>
+          </div>
+          ${scoreMarkup}
+          <span class="status-chip ${complete ? "done" : "warn"}">${complete ? "完了" : "未完了"}</span>
+          <button class="btn ${complete ? "btn-secondary" : "btn-primary"}" data-record="${record.id}" data-stage="${stage}">
+            ${complete ? "確認・編集" : "評価する"}
+          </button>
+        </div>
+      `;
+    }).join("");
+
+    document.querySelectorAll("#employeeList [data-stage]").forEach(button => {
+      button.onclick = () =>
+        openEvaluation(Number(button.dataset.record), button.dataset.stage);
+    });
+  };
 
   renderSections = function () {
     uiImpOriginalRenderSections();
