@@ -582,9 +582,19 @@ async function saveStage(submit=false){
   }
 
   if(activeStage!=="executive"){patch[stage.field]=scores;patch[stage.comment]=$("stageComment").value.trim()||null}
-  if(activeStage==="self"&&submit){patch.workflow_status="self_submitted";patch.self_submitted_at=new Date().toISOString()}
-  if(activeStage==="primary"&&submit){patch.workflow_status="primary_submitted";patch.primary_submitted_at=new Date().toISOString()}
-  if(activeStage==="interview"&&submit){patch.workflow_status="interview_submitted";patch.interview_submitted_at=new Date().toISOString()}
+  const submittedAt=new Date().toISOString();
+  if(activeStage==="self"&&submit){
+    if(stageRank(activeRecord.workflow_status)<stageRank("self_submitted"))patch.workflow_status="self_submitted";
+    patch.self_submitted_at=activeRecord.self_submitted_at||submittedAt;
+  }
+  if(activeStage==="primary"&&submit){
+    if(stageRank(activeRecord.workflow_status)<stageRank("primary_submitted"))patch.workflow_status="primary_submitted";
+    patch.primary_submitted_at=activeRecord.primary_submitted_at||submittedAt;
+  }
+  if(activeStage==="interview"&&submit){
+    if(stageRank(activeRecord.workflow_status)<stageRank("interview_submitted"))patch.workflow_status="interview_submitted";
+    patch.interview_submitted_at=activeRecord.interview_submitted_at||submittedAt;
+  }
   if(activeStage==="executive"){
     const exec={...(activeRecord.executive_scores||{})},final={
       ...(activeRecord.interview_scores||{}),
@@ -596,7 +606,10 @@ async function saveStage(submit=false){
       final[itemKey(i.id)]=v;
     });
     patch.executive_scores=exec;patch.final_scores=final;patch.executive_comment=$("stageComment").value.trim()||null;patch.executive_saved_at=new Date().toISOString();
-    if(submit){patch.workflow_status="finalized";patch.finalized_at=new Date().toISOString()}
+    if(submit){
+      patch.workflow_status="finalized";
+      patch.finalized_at=activeRecord.finalized_at||submittedAt;
+    }
   }
   if(draftCopied&&previousRecord){patch.copied_from_record_id=previousRecord.id;patch.copied_at=new Date().toISOString()}
 
