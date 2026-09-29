@@ -1,10 +1,148 @@
 // 人事評価システム UI/入力検証改善パッチ 2026-09-10
-// app.js 読み込み後に実行する。
+// app.js 読み込み後に実行する。v1.2
 
 (() => {
   const uiImpOriginalRenderSections = renderSections;
   const uiImpOriginalOpenEvaluation = openEvaluation;
   const uiImpOriginalSaveStage = saveStage;
+  let uiImpBulkPasting = false;
+  let uiImpCopiedEvaluation = null;
+
+  function uiImpNormalizeKeyText(value) {
+    return String(value || "")
+      .replaceAll("\\n", "\n")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function uiImpSemanticKey(item) {
+    return [
+      item.section || "",
+      uiImpNormalizeKeyText(item.category),
+      uiImpNormalizeKeyText(item.item_text)
+    ].join("|");
+  }
+
+  function uiImpScrollToNextItem(select) {
+    if (uiImpBulkPasting || activeStage === "executive" || !select?.value) return;
+    const inputs = [...document.querySelectorAll("#evaluationSections select[data-item]")]
+      .filter(el => !el.disabled && el.offsetParent !== null);
+    const index = inputs.indexOf(select);
+    if (index < 0 || index >= inputs.length - 1) return;
+
+    const next = inputs[index + 1];
+    const row = next.closest(".eval-item");
+    row?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => next.focus({ preventScroll: true }), 220);
+  }
+
+  function uiImpCopyCurrentEvaluation() {
+    if (!["primary", "interview"].includes(activeStage) || !activeRecord) return;
+    const canField = STAGE_META[activeStage]?.can;
+    const current = collectCurrent();
+    const scores = {};
+
+    activeItems
+      .filter(item => !!item[canField])
+      .forEach(item => {
+        const value = Number(current[itemKey(item.id)] || 0);
+        if (value) scores[uiImpSemanticKey(item)] = value;
+      });
+
+    const employee = employeeMap.get(activeRecord.employee_id);
+    uiImpCopiedEvaluation = {
+      stage: activeStage,
+      sourceRecordId: activeRecord.id,
+      sourceName: employee?.name || "コピー元社員",
+      scores,
+      count: Object.keys(scores).length
+    };
+
+    uiImpRenderCopyPasteActions();
+    setMsg(
+      $("saveMessage"),
+      `${uiImpCopiedEvaluation.sourceName}さんの評価点 ${uiImpCopiedEvaluation.count}項目をコピーしました。`,
+      "success"
+    );
+  }
+
+  function uiImpPasteEvaluation() {
+    if (!uiImpCopiedEvaluation || !activeRecord) return;
+    if (uiImpCopiedEvaluation.stage !== activeStage) {
+      setMsg($("saveMessage"), "コピー元と現在の評価段階が異なるため貼り付けできません。", "error");
+      return;
+    }
+
+    const target = employeeMap.get(activeRecord.employee_id);
+    const ok = confirm(
+      `${uiImpCopiedEvaluation.sourceName}さんの評価点を${target?.name || "この社員"}さんへ貼り付けますか？\nコメントはコピーしません。`
+    );
+    if (!ok) return;
+
+    const canField = STAGE_META[activeStage]?.can;
+    let pasted = 0;
+    uiImpBulkPasting = true;
+
+    try {
+      activeItems
+        .filter(item => !!item[canField])
+        .forEach(item => {
+          const value = uiImpCopiedEvaluation.scores[uiImpSemanticKey(item)];
+          if (!value) return;
+          const select = document.querySelector(`select[data-item="${item.id}"]`);
+          if (!select) return;
+          select.value = String(value);
+          select.dispatchEvent(new Event("change", { bubbles: true }));
+          pasted++;
+        });
+    } finally {
+      uiImpBulkPasting = false;
+    }
+
+    updateEvalSummary();
+    updateRequiredCommentSummary();
+    setMsg(
+      $("saveMessage"),
+      `${pasted}項目の評価点を貼り付けました。まだ保存されていません。`,
+      "success"
+    );
+  }
+
+  function uiImpRenderCopyPasteActions() {
+    let box = document.getElementById("evaluationCopyActions");
+    if (!["primary", "interview"].includes(activeStage)) {
+      box?.remove();
+      return;
+    }
+
+    const panel = document.querySelector("#evaluationView .employee-info-panel");
+    const scoreSummary = panel?.querySelector(".evaluation-score-summary");
+    if (!panel || !scoreSummary) return;
+
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "evaluationCopyActions";
+      box.className = "evaluation-copy-actions";
+      panel.insertBefore(box, scoreSummary);
+    }
+
+    const copied = uiImpCopiedEvaluation;
+    const usable = copied && copied.stage === activeStage;
+    box.innerHTML = `
+      <div class="evaluation-copy-actions-buttons">
+        <button type="button" class="btn btn-secondary" data-eval-copy>評価をコピー</button>
+        <button type="button" class="btn btn-secondary" data-eval-paste ${usable ? "" : "disabled"}>コピーを貼り付け</button>
+      </div>
+      <small>${
+        usable
+          ? `${esc(copied.sourceName)}さん / ${copied.count}項目をコピー中（点数のみ）`
+          : "別の社員へ評価点だけコピーできます。"
+      }</small>
+    `;
+
+    box.querySelector("[data-eval-copy]")?.addEventListener("click", uiImpCopyCurrentEvaluation);
+    box.querySelector("[data-eval-paste]")?.addEventListener("click", uiImpPasteEvaluation);
+  }
 
   function uiImpEnsureMissingBanner() {
     let banner = document.getElementById("missingInputSummary");
@@ -85,6 +223,9 @@
       select.addEventListener("change", () => {
         const row = select.closest(".eval-item");
         if (select.value) row?.classList.remove("missing-input");
+        if (select.value && !uiImpBulkPasting) {
+          setTimeout(() => uiImpScrollToNextItem(select), 70);
+        }
 
         const required = uiImpSubmissionItems();
         if (!required.length) return;
@@ -192,6 +333,7 @@
     uiImpResetMissingState();
     await uiImpOriginalOpenEvaluation(recordId, stage);
     uiImpRenderEmployeeSwitcher();
+    uiImpRenderCopyPasteActions();
   };
 
   saveStage = async function (submit = false) {
@@ -208,13 +350,13 @@
   if (!document.querySelector('link[data-continuous-input]')) {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = './continuous-input.css?v=1.1';
+    link.href = './continuous-input.css?v=1.2';
     link.dataset.continuousInput = 'true';
     document.head.appendChild(link);
   }
   if (!document.querySelector('script[data-continuous-input]')) {
     const script = document.createElement('script');
-    script.src = './continuous-input.js?v=1.1';
+    script.src = './continuous-input.js?v=1.2';
     script.dataset.continuousInput = 'true';
     document.body.appendChild(script);
   }
