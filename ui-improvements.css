@@ -1,4 +1,4 @@
-/* 人事評価システム UI改善パッチ 2026-09-10
+/* 人事評価システム UI改善パッチ v1.2 2026-09-29
    既存 style.css の後から読み込む上書き用CSS */
 
 /* 1. 全体の可読性を上げる */
@@ -197,5 +197,62 @@ button,input,textarea,select{
   .input-box select{
     width:104px;
     min-width:104px;
+  }
+}
+
+
+/* 6. 評価対象者情報をスクロール中も固定 */
+#evaluationView .employee-info-panel{
+  position:sticky;
+  top:64px;
+  z-index:70;
+  box-shadow:0 5px 14px rgba(30,50,70,.12);
+}
+#evaluationView .eval-item{
+  scroll-margin-top:190px;
+}
+
+/* 7. 社員単位の評価点コピー＆ペースト */
+.evaluation-copy-actions{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  margin-left:auto;
+  margin-right:16px;
+  min-width:230px;
+}
+.evaluation-copy-actions-buttons{
+  display:flex;
+  gap:6px;
+  justify-content:flex-end;
+}
+.evaluation-copy-actions .btn{
+  padding:8px 10px;
+  font-size:13px;
+  white-space:nowrap;
+}
+.evaluation-copy-actions small{
+  display:block;
+  text-align:right;
+  font-size:11px;
+  color:#6d7d8e;
+  line-height:1.45;
+}
+
+@media(max-width:900px){
+  #evaluationView .employee-info-panel{
+    flex-wrap:wrap;
+  }
+  .evaluation-copy-actions{
+    order:3;
+    width:100%;
+    margin:8px 0 0;
+    min-width:0;
+  }
+  .evaluation-copy-actions-buttons{
+    justify-content:flex-start;
+  }
+  .evaluation-copy-actions small{
+    text-align:left;
   }
 }
