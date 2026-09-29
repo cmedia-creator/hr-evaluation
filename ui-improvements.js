@@ -1,5 +1,5 @@
 // 人事評価システム UI/入力検証改善パッチ 2026-09-10
-// app.js 読み込み後に実行する。v1.4
+// app.js 読み込み後に実行する。v1.5
 
 (() => {
   const uiImpOriginalRenderSections = renderSections;
@@ -149,15 +149,21 @@
 
   function uiImpScrollToNextItem(select) {
     if (uiImpBulkPasting || activeStage === "executive" || !select?.value) return;
-    const inputs = [...document.querySelectorAll("#evaluationSections select[data-item]")]
-      .filter(el => !el.disabled && el.offsetParent !== null);
-    const index = inputs.indexOf(select);
-    if (index < 0 || index >= inputs.length - 1) return;
 
-    const next = inputs[index + 1];
-    const row = next.closest(".eval-item");
-    row?.scrollIntoView({ behavior: "smooth", block: "center" });
-    setTimeout(() => next.focus({ preventScroll: true }), 220);
+    const selects = [
+      ...document.querySelectorAll("#evaluationSections select[data-item]")
+    ].filter(el => !el.disabled);
+    const index = selects.indexOf(select);
+    if (index < 0 || index >= selects.length - 1) return;
+
+    const nextSelect = selects[index + 1];
+    const nextRow = nextSelect.closest(".eval-item");
+    const nextFocus = uiImpManualScoreMode
+      ? nextRow?.querySelector("[data-manual-score]")
+      : nextSelect;
+
+    nextRow?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => nextFocus?.focus({ preventScroll: true }), 220);
   }
 
   function uiImpCopyCurrentEvaluation() {
