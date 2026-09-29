@@ -32,7 +32,7 @@ const STATUS_RANK={
 let profile=null,cycles=[],selectedCycle=null,allRecords=[],records=[];
 let employeeMap=new Map(),templateCache=new Map(),itemCache=new Map();
 let activeRecord=null,activeItems=[],activeStage=null,previousRecord=null,previousItems=[],draftCopied=false;
-let draftInterviewComments={};
+let draftPrimaryComments={},draftInterviewComments={};
 
 const $=id=>document.getElementById(id);
 const views=["dashboardView","listView","evaluationView","executiveView"];
@@ -283,6 +283,7 @@ async function openEvaluation(recordId,stage){
   activeItems=await getItems(activeRecord.template_id);
   const prev=await findPrevious(activeRecord);
   previousRecord=prev?.r||null;previousItems=previousRecord?await getItems(previousRecord.template_id):[];
+  draftPrimaryComments={...(activeRecord.primary_item_comments||{})};
   draftInterviewComments={...(activeRecord.interview_item_comments||{})};
 
   showView("evaluationView");setPage(STAGE_META[stage].title,`${emp.name}さんの${STAGE_META[stage].title}を確認・入力します。`);
@@ -426,12 +427,23 @@ function renderItem(item,scores){
   }
 
   let itemComment="";
-  if(activeStage==="interview"&&canInput){
-    const reasons=requiredInterviewReasons(activeRecord,item,current);
-    itemComment=`<div class="item-comment-box ${reasons.length?"":"hidden"}" data-comment-wrap="${item.id}">
-      <strong>この項目は理由コメントが必要です。</strong>
-      <div class="item-comment-reasons" data-comment-reasons="${item.id}">${esc(reasons.join(" / "))}</div>
-      <textarea data-item-comment="${item.id}" placeholder="なぜこの評価になったのか、理由を入力してください。">${esc(draftInterviewComments[k]||"")}</textarea>
+  if(["primary","interview"].includes(activeStage)&&canInput){
+    const isInterview=activeStage==="interview";
+    const reasons=isInterview?requiredInterviewReasons(activeRecord,item,current):[];
+    const saved=isInterview
+      ? String(draftInterviewComments[k]||"")
+      : String(draftPrimaryComments[k]||"");
+    const initiallyOpen=!!reasons.length||!!saved.trim();
+
+    itemComment=`<div class="item-comment-toggle-row ${reasons.length?"hidden":""}" data-comment-toggle-row="${item.id}">
+      <button type="button" class="btn btn-secondary item-comment-toggle" data-comment-toggle="${item.id}">
+        ${initiallyOpen?"コメントを閉じる":"コメントを残す"}
+      </button>
+    </div>
+    <div class="item-comment-box ${initiallyOpen?"":"hidden"}" data-comment-wrap="${item.id}" data-comment-open="${initiallyOpen&&!reasons.length?"1":"0"}">
+      <strong data-comment-heading="${item.id}">${reasons.length?"この項目は理由コメントが必要です。":"任意コメント"}</strong>
+      <div class="item-comment-reasons ${reasons.length?"":"hidden"}" data-comment-reasons="${item.id}">${esc(reasons.join(" / "))}</div>
+      <textarea data-item-comment="${item.id}" placeholder="${reasons.length?"なぜこの評価になったのか、理由を入力してください。":"必要に応じてコメントを入力してください。"}">${esc(saved)}</textarea>
     </div>`;
     if(reasons.length)el.classList.add("comment-required");
   }
@@ -463,18 +475,44 @@ function renderItem(item,scores){
     if(activeStage==="interview")refreshItemCommentRequirement(el,item,Number(v)||null);
     updateEvalSummary();updateRequiredCommentSummary();
   };
+  const toggle=el.querySelector("[data-comment-toggle]");
+  if(toggle)toggle.onclick=()=>{
+    const wrap=el.querySelector(`[data-comment-wrap="${item.id}"]`);
+    if(!wrap)return;
+    const open=wrap.classList.contains("hidden");
+    wrap.classList.toggle("hidden",!open);
+    wrap.dataset.commentOpen=open?"1":"0";
+    toggle.textContent=open?"コメントを閉じる":"コメントを残す";
+    if(open)wrap.querySelector("textarea")?.focus();
+  };
+
   const ta=el.querySelector("[data-item-comment]");
-  if(ta)ta.oninput=()=>{draftInterviewComments[k]=ta.value;updateRequiredCommentSummary()};
+  if(ta)ta.oninput=()=>{
+    if(activeStage==="primary")draftPrimaryComments[k]=ta.value;
+    if(activeStage==="interview")draftInterviewComments[k]=ta.value;
+    updateRequiredCommentSummary();
+  };
   return el;
 }
 function refreshItemCommentRequirement(el,item,value){
+  if(activeStage!=="interview")return;
   const reasons=requiredInterviewReasons(activeRecord,item,value);
   const wrap=el.querySelector(`[data-comment-wrap="${item.id}"]`);
   const reasonEl=el.querySelector(`[data-comment-reasons="${item.id}"]`);
+  const heading=el.querySelector(`[data-comment-heading="${item.id}"]`);
+  const toggleRow=el.querySelector(`[data-comment-toggle-row="${item.id}"]`);
+  const toggle=el.querySelector(`[data-comment-toggle="${item.id}"]`);
   if(!wrap)return;
-  wrap.classList.toggle("hidden",!reasons.length);
-  el.classList.toggle("comment-required",!!reasons.length);
+
+  const required=!!reasons.length;
+  const manuallyOpen=wrap.dataset.commentOpen==="1";
+  wrap.classList.toggle("hidden",!required&&!manuallyOpen);
+  el.classList.toggle("comment-required",required);
+  toggleRow?.classList.toggle("hidden",required);
+  reasonEl?.classList.toggle("hidden",!required);
   if(reasonEl)reasonEl.textContent=reasons.join(" / ");
+  if(heading)heading.textContent=required?"この項目は理由コメントが必要です。":"任意コメント";
+  if(toggle)toggle.textContent=manuallyOpen?"コメントを閉じる":"コメントを残す";
 }
 function collectCurrent(){
   const out={};document.querySelectorAll("[data-item]").forEach(s=>{if(s.value)out[itemKey(s.dataset.item)]=Number(s.value)});return out;
@@ -516,6 +554,10 @@ async function saveStage(submit=false){
   setMsg($("saveMessage"));
   const scores=collectCurrent(),stage=STAGE_META[activeStage],patch={updated_at:new Date().toISOString()};
 
+  if(activeStage==="primary"){
+    patch.primary_item_comments={...draftPrimaryComments};
+  }
+
   if(activeStage==="interview"){
     const missing=missingRequiredComments(scores);
     if(submit&&missing.length){
@@ -546,7 +588,7 @@ async function saveStage(submit=false){
   if(error){setMsg($("saveMessage"),error.message,"error");return}
   activeRecord=data;
   const idx=allRecords.findIndex(r=>r.id===data.id);if(idx>=0)allRecords[idx]=data;
-  refreshCycleRecords();draftCopied=false;draftInterviewComments={...(data.interview_item_comments||{})};
+  refreshCycleRecords();draftCopied=false;draftPrimaryComments={...(data.primary_item_comments||{})};draftInterviewComments={...(data.interview_item_comments||{})};
   setMsg($("saveMessage"),submit?"提出・確定しました。":"一時保存しました。","success");
   if(submit)setTimeout(()=>activeStage==="executive"?renderExecutive():renderDashboard(),450);
 }
