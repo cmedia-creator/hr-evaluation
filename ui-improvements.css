@@ -1,4 +1,4 @@
-/* 人事評価システム UI改善パッチ v1.5 2026-09-29
+/* 人事評価システム UI改善パッチ v1.6 2026-09-29
    既存 style.css の後から読み込む上書き用CSS */
 
 /* 1. 全体の可読性を上げる */
@@ -208,6 +208,10 @@ button,input,textarea,select{
   z-index:70;
   box-shadow:0 5px 14px rgba(30,50,70,.12);
 }
+#evaluationView .evaluation-toolbar{
+  top:var(--eval-toolbar-sticky-top);
+  z-index:60;
+}
 #evaluationView .eval-item{
   scroll-margin-top:190px;
 }
@@ -331,7 +335,8 @@ button,input,textarea,select{
 
 /* 9. セクション見出し固定・手入力モード・任意コメント */
 :root{
-  --eval-section-sticky-top:160px;
+  --eval-toolbar-sticky-top:154px;
+  --eval-section-sticky-top:220px;
 }
 #evaluationView .eval-section>summary{
   position:sticky;
