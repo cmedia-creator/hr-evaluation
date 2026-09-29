@@ -1,5 +1,5 @@
 // 人事評価システム UI/入力検証改善パッチ 2026-09-10
-// app.js 読み込み後に実行する。v1.5
+// app.js 読み込み後に実行する。v1.6
 
 (() => {
   const uiImpOriginalRenderSections = renderSections;
@@ -118,6 +118,12 @@
             }
             select.value = value;
             select.dispatchEvent(new Event("change", { bubbles: true }));
+          });
+
+          select.addEventListener("change", () => {
+            if (document.activeElement !== input) {
+              input.value = select.value || "";
+            }
           });
 
           button.addEventListener("click", () => {
@@ -354,7 +360,16 @@
         const row = select.closest(".eval-item");
         if (select.value) row?.classList.remove("missing-input");
         if (select.value && !uiImpBulkPasting) {
-          setTimeout(() => uiImpScrollToNextItem(select), 70);
+          setTimeout(() => {
+            if (
+              activeStage === "interview" &&
+              row?.classList.contains("comment-required")
+            ) {
+              row.querySelector("[data-item-comment]")?.focus();
+              return;
+            }
+            uiImpScrollToNextItem(select);
+          }, 70);
         }
 
         const required = uiImpSubmissionItems();
