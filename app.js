@@ -108,6 +108,7 @@ function refreshCycleRecords(){records=allRecords.filter(r=>r.cycle_id===selecte
 function renderSidebarCycle(){
   const selector=$("cycleSelector");
   if(selector)selector.value=selectedCycle?String(selectedCycle.id):"";
+  $("sidebarCycleMeta").textContent=`${CYCLE_TYPE_LABELS[selectedCycle?.cycle_type]||""} / ${selectedCycle?.year||""}年度`;
   $("sidebarCycleStatus").textContent=selectedCycle?.status==="open"?"受付中":selectedCycle?.status==="closed"?"終了":"準備中";
 }
 function handleCycleChange(){
