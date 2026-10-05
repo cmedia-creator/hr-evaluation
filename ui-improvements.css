@@ -1,4 +1,4 @@
-/* 人事評価システム UI改善パッチ v1.6 2026-09-29
+/* 人事評価システム UI改善パッチ v1.7 2026-09-29
    既存 style.css の後から読み込む上書き用CSS */
 
 /* 1. 全体の可読性を上げる */
@@ -425,36 +425,23 @@ button,input,textarea,select{
 }
 
 
-/* 10. 評価回セレクタをホームへ移動 */
-.home-cycle-main{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-start;
-  gap:3px;
-}
-.home-cycle-selector-label{
-  display:grid;
-  gap:5px;
-  margin-top:8px;
+/* 10. 評価回セレクタをサイドバーに配置 */
+.sidebar-cycle-selector-label{
+  display:block;
+  margin-bottom:6px;
+  color:#607286;
   font-size:13px;
   font-weight:800;
-  color:#607286;
 }
-.home-cycle-selector-label select{
-  min-width:300px;
-  max-width:460px;
-  padding:9px 12px;
-  background:#fff;
+.sidebar-status-box select{
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  padding:8px 9px;
   border:1px solid #afbfce;
+  border-radius:5px;
+  background:#fff;
   color:#263f57;
-  font-size:16px;
+  font-size:15px;
   font-weight:700;
-}
-@media(max-width:760px){
-  .home-cycle-selector-label,
-  .home-cycle-selector-label select{
-    width:100%;
-    min-width:0;
-    max-width:none;
-  }
 }

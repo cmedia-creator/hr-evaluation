@@ -98,15 +98,60 @@ async function loadBase(){
   refreshCycleRecords();
 
   $("accountBadge").innerHTML=`<span>${esc(profile.display_name)}</span><small>${esc(profile.login_id)}</small>`;
-  $("cycleSelector").innerHTML=cycles.map(c=>`<option value="${c.id}" ${c.id===selectedCycle?.id?"selected":""}>${esc(c.name)}</option>`).join("");
-  $("cycleSelector").onchange=()=>{
-    selectedCycle=cycles.find(c=>c.id===Number($("cycleSelector").value));
-    refreshCycleRecords();renderDashboard();
-  };
+  $("cycleSelector").innerHTML=cycles.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("");
+  renderSidebarCycle();
+  $("cycleSelector").onchange=handleCycleChange;
   configureNav();
   return true;
 }
 function refreshCycleRecords(){records=allRecords.filter(r=>r.cycle_id===selectedCycle?.id)}
+function renderSidebarCycle(){
+  const selector=$("cycleSelector");
+  if(selector)selector.value=selectedCycle?String(selectedCycle.id):"";
+  $("sidebarCycleMeta").textContent=`${CYCLE_TYPE_LABELS[selectedCycle?.cycle_type]||""} / ${selectedCycle?.year||""}年度`;
+  $("sidebarCycleStatus").textContent=selectedCycle?.status==="open"?"受付中":selectedCycle?.status==="closed"?"終了":"準備中";
+}
+function handleCycleChange(){
+  const nextCycle=cycles.find(c=>c.id===Number($("cycleSelector").value));
+  if(!nextCycle||nextCycle.id===selectedCycle?.id){renderSidebarCycle();return}
+
+  const currentView=views.find(view=>!$(view).classList.contains("hidden"));
+  if(currentView==="evaluationView"&&!confirm("評価回を切り替えると、保存していない入力内容は失われます。切り替えますか？")){
+    renderSidebarCycle();
+    return;
+  }
+
+  const previousStage=activeStage;
+  const employeeId=activeRecord?.employee_id;
+  selectedCycle=nextCycle;
+  refreshCycleRecords();
+  renderSidebarCycle();
+
+  if(currentView==="listView"&&["primary","interview"].includes(previousStage)){
+    renderEmployeeList(previousStage);
+    return;
+  }
+  if(currentView==="executiveView"){
+    renderExecutive();
+    return;
+  }
+  if(currentView==="evaluationView"){
+    const nextRecord=records.find(record=>record.employee_id===employeeId);
+    if(nextRecord){
+      openEvaluation(nextRecord.id,previousStage);
+      return;
+    }
+    if(previousStage==="primary"||previousStage==="interview"){
+      renderEmployeeList(previousStage);
+      return;
+    }
+    if(previousStage==="executive"&&profile.can_executive){
+      renderExecutive();
+      return;
+    }
+  }
+  renderDashboard();
+}
 function configureNav(){
   $("selfNav").classList.toggle("hidden",!profile.can_self);
   $("primaryNav").classList.toggle("hidden",!profile.can_manage);
@@ -152,10 +197,7 @@ function progressRow(label,status,desc,kind=""){
 function renderDashboard(){
   showView("dashboardView");setPage("ホーム","あなたに必要な評価業務だけ表示しています。","ホーム");
   document.querySelector('[data-nav="dashboard"]').classList.add("active");
-  $("currentCycleName").textContent=selectedCycle?.name||"-";
-  $("currentCycleMeta").textContent=`${CYCLE_TYPE_LABELS[selectedCycle?.cycle_type]||""} / ${selectedCycle?.year||""}年度`;
-  $("sidebarCycleName").textContent=selectedCycle?.name||"-";
-  $("sidebarCycleStatus").textContent=selectedCycle?.status==="open"?"受付中":selectedCycle?.status==="closed"?"終了":"準備中";
+  renderSidebarCycle();
 
   const own=records.find(r=>r.employee_id===profile.employee_id);
   const managed=getManagedRecords();
