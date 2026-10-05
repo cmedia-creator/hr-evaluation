@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>人事評価システム</title>
   <link rel="stylesheet" href="./style.css?v=5.0">
-  <link rel="stylesheet" href="./ui-improvements.css?v=1.6">
+  <link rel="stylesheet" href="./ui-improvements.css?v=1.7">
 </head>
 <body>
   <section id="loginView" class="login-page">
@@ -76,7 +76,8 @@
 
       <div class="sidebar-section-label second">現在の評価回</div>
       <div class="sidebar-status-box">
-        <strong id="sidebarCycleName">-</strong>
+        <label class="sidebar-cycle-selector-label" for="cycleSelector">評価回を切り替える</label>
+        <select id="cycleSelector" aria-label="評価回を切り替える"></select>
         <small id="sidebarCycleStatus">-</small>
       </div>
     </aside>
@@ -102,17 +103,6 @@
           <p>未完了の評価がある場合は、この画面に表示します。</p>
         </section>
 
-        <div class="home-cycle-bar">
-          <div class="home-cycle-main">
-            <span>現在の評価回</span>
-            <strong id="currentCycleName">-</strong>
-            <label class="home-cycle-selector-label" for="cycleSelector">
-              評価回を切り替える
-              <select id="cycleSelector" aria-label="評価回を切り替える"></select>
-            </label>
-          </div>
-          <small id="currentCycleMeta">-</small>
-        </div>
 
         <div id="permissionCards" class="role-card-grid"></div>
 
@@ -325,7 +315,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./app.js?v=5.3"></script>
+  <script src="./app.js?v=5.4"></script>
   <script src="./login-bootstrap.js?v=1.0"></script>
   <script src="./ui-improvements.js?v=1.8"></script>
 </body>
