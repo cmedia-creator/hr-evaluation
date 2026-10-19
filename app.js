@@ -552,7 +552,8 @@ function renderItem(item,scores){
   if(nextButton)nextButton.onclick=()=>{
     const rows=[...document.querySelectorAll("#evaluationSections .eval-item")];
     const next=rows[rows.indexOf(el)+1];
-    if(next)next.scrollIntoView({behavior:"smooth",block:"start"});
+    const heading=next.querySelector(".item-title")||next;
+    if(heading)heading.scrollIntoView({behavior:"smooth",block:"nearest"});
   };
 
   const ta=el.querySelector("[data-item-comment]");
