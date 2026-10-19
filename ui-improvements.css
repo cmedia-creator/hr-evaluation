@@ -462,7 +462,7 @@ button,input,textarea,select{
 .item-comment-next-row .item-next-button:hover{
   background:#eef3f8;
 }
-.eval-item{
-  scroll-margin-top:84px;
+.eval-item .item-title{
+  scroll-margin-bottom:110px;
 }
 .item-comment-next-row .item-next-button:disabled{opacity:.55;cursor:not-allowed;}
