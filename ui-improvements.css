@@ -445,3 +445,24 @@ button,input,textarea,select{
   font-size:15px;
   font-weight:700;
 }
+
+/* コメント入力後に次の評価項目へ移動 */
+.item-comment-next-row{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:8px;
+}
+.item-comment-next-row .item-next-button{
+  min-height:40px;
+  padding:8px 12px;
+  color:#334e68;
+  background:#f8fafc;
+  border-color:#cbd5df;
+}
+.item-comment-next-row .item-next-button:hover{
+  background:#eef3f8;
+}
+.eval-item{
+  scroll-margin-top:84px;
+}
+.item-comment-next-row .item-next-button:disabled{opacity:.55;cursor:not-allowed;}

@@ -443,6 +443,14 @@ function renderSections(){
     });
     $("evaluationSections").appendChild(d);
   });
+  const evaluationRows=[...document.querySelectorAll("#evaluationSections .eval-item")];
+  evaluationRows.forEach((row,index)=>{
+    const nextButton=row.querySelector("[data-next-evaluation-item]");
+    if(nextButton){
+      nextButton.disabled=index===evaluationRows.length-1;
+      if(nextButton.disabled)nextButton.title="最後の項目です";
+    }
+  });
 }
 function mini(label,val,active=false){return`<div class="score-mini ${active?"active":""}"><span>${label}</span><strong>${val||"-"}</strong></div>`}
 function renderItem(item,scores){
@@ -495,6 +503,9 @@ function renderItem(item,scores){
       <strong data-comment-heading="${item.id}">${reasons.length?"この項目は理由コメントが必要です。":"任意コメント"}</strong>
       <div class="item-comment-reasons ${reasons.length?"":"hidden"}" data-comment-reasons="${item.id}">${esc(reasons.join(" / "))}</div>
       <textarea data-item-comment="${item.id}" placeholder="${reasons.length?"なぜこの評価になったのか、理由を入力してください。":"必要に応じてコメントを入力してください。"}">${esc(saved)}</textarea>
+      <div class="item-comment-next-row">
+        <button type="button" class="btn btn-secondary item-next-button" data-next-evaluation-item>次の項目へ</button>
+      </div>
     </div>`;
     if(reasons.length)el.classList.add("comment-required");
   }
@@ -535,6 +546,13 @@ function renderItem(item,scores){
     wrap.dataset.commentOpen=open?"1":"0";
     toggle.textContent=open?"コメントを閉じる":"コメントを残す";
     if(open)wrap.querySelector("textarea")?.focus();
+  };
+
+  const nextButton=el.querySelector("[data-next-evaluation-item]");
+  if(nextButton)nextButton.onclick=()=>{
+    const rows=[...document.querySelectorAll("#evaluationSections .eval-item")];
+    const next=rows[rows.indexOf(el)+1];
+    if(next)next.scrollIntoView({behavior:"smooth",block:"start"});
   };
 
   const ta=el.querySelector("[data-item-comment]");
