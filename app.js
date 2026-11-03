@@ -682,7 +682,14 @@ async function saveStage(submit=false){
   const idx=allRecords.findIndex(r=>r.id===data.id);if(idx>=0)allRecords[idx]=data;
   refreshCycleRecords();draftCopied=false;draftPrimaryComments={...(data.primary_item_comments||{})};draftInterviewComments={...(data.interview_item_comments||{})};
   setMsg($("saveMessage"),submit?"提出・確定しました。":"一時保存しました。","success");
-  if(submit)setTimeout(()=>activeStage==="executive"?renderExecutive():renderDashboard(),450);
+  if(submit){
+    const submittedStage=activeStage;
+    setTimeout(()=>{
+      if(submittedStage==="primary"||submittedStage==="interview")renderEmployeeList(submittedStage);
+      else if(submittedStage==="executive")renderExecutive();
+      else renderDashboard();
+    },450);
+  }
 }
 
 async function renderExecutive(){
