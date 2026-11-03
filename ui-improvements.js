@@ -1,5 +1,5 @@
 // 人事評価システム UI/入力検証改善パッチ 2026-09-10
-// app.js 読み込み後に実行する。v1.8
+// app.js 読み込み後に実行する。v1.9
 
 (() => {
   const uiImpOriginalRenderSections = renderSections;
@@ -635,7 +635,7 @@
   }
   if (!document.querySelector('script[data-continuous-input]')) {
     const script = document.createElement('script');
-    script.src = './continuous-input.js?v=1.4';
+    script.src = './continuous-input.js?v=1.5';
     script.dataset.continuousInput = 'true';
     document.body.appendChild(script);
   }

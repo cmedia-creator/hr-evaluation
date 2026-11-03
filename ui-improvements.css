@@ -466,3 +466,20 @@ button,input,textarea,select{
   scroll-margin-bottom:110px;
 }
 .item-comment-next-row .item-next-button:disabled{opacity:.55;cursor:not-allowed;}
+
+/* 面談後評価で一次評価コメントを参照 */
+.primary-comment-reference{
+  margin-top:10px;
+  padding:10px 12px;
+  border:1px solid #bfd5e6;
+  border-left:4px solid #3c78a4;
+  border-radius:4px;
+  background:#edf5fb;
+  color:#2b4961;
+}
+.primary-comment-reference strong{display:block;font-size:14px;line-height:1.4}
+.primary-comment-reference p{margin:5px 0 0;font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.primary-overall-comment{margin:0 16px 12px}
+.primary-overall-details{margin-top:8px;border:1px solid #bfd5e6;border-radius:4px;background:#f5f9fc}
+.primary-overall-details summary{padding:8px 10px;color:#2b4961;font-size:13px;font-weight:800;cursor:pointer}
+.primary-overall-details p{margin:0;padding:0 10px 10px;color:#2b4961;font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}

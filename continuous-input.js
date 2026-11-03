@@ -1,4 +1,4 @@
-// 人事評価システム 連続入力モード v1.4
+// 人事評価システム 連続入力モード v1.5
 // 一次評価・面談後評価で、1項目ごとに担当社員を横断して入力する。
 
 (() => {
@@ -232,6 +232,12 @@
     const reasons = ciState.stage === "interview"
       ? requiredInterviewReasons(record, item, current)
       : [];
+    const primaryComment = ciState.stage === "interview"
+      ? primaryCommentReference((record.primary_item_comments || {})[itemKey(item.id)])
+      : "";
+    const primaryOverallComment = ciState.stage === "interview"
+      ? String(record.primary_comment || "").trim()
+      : "";
     const comment = String(ciComments(record)[itemKey(item.id)] || "");
     const commentOpen = !!reasons.length || !!comment.trim();
     const rowCriteria = scoreCriteria(item, ciState.stage) || {};
@@ -251,6 +257,8 @@
             ${[1,2,3,4,5].map(n => `<button type="button" class="continuous-score-button ${current === n ? "selected" : ""}" data-ci-score="${n}">${n}</button>`).join("")}
             <button type="button" class="continuous-clear-button" data-ci-clear title="未入力に戻す">×</button>
           </div>
+          ${primaryComment}
+          ${primaryOverallComment ? `<details class="primary-overall-details"><summary>一次評価の全体コメント</summary><p>${esc(primaryOverallComment)}</p></details>` : ""}
           <div class="continuous-comment-toggle-row ${reasons.length ? "hidden" : ""}" data-ci-comment-toggle-row>
             <button type="button" class="btn btn-secondary continuous-comment-toggle" data-ci-comment-toggle>
               ${commentOpen ? "コメントを閉じる" : "コメントを残す"}

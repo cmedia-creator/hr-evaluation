@@ -336,6 +336,9 @@ async function openEvaluation(recordId,stage){
   $("targetMeta").textContent=`${emp.employee_code} / ${emp.department} / ${emp.job_level} / ${tpl.name} / ${selectedCycle?.name||""}`;
   $("commentTitle").textContent=`${STAGE_META[stage].title} 全体コメント`;
   $("stageComment").value=activeRecord[STAGE_META[stage].comment]||"";
+  const primaryOverallComment=stage==="interview"?String(activeRecord.primary_comment||"").trim():"";
+  $("primaryOverallComment").classList.toggle("hidden",!primaryOverallComment);
+  $("primaryOverallCommentText").textContent=primaryOverallComment;
 
   const notices={
     self:"自己評価では、本人が入力可能な項目を評価します。",
@@ -453,6 +456,10 @@ function renderSections(){
   });
 }
 function mini(label,val,active=false){return`<div class="score-mini ${active?"active":""}"><span>${label}</span><strong>${val||"-"}</strong></div>`}
+function primaryCommentReference(comment){
+  const text=String(comment||"").trim();
+  return text?`<div class="primary-comment-reference"><strong>一次評価コメント</strong><p>${esc(text)}</p></div>`:"";
+}
 function renderItem(item,scores){
   const el=document.createElement("div");el.className="eval-item";el.dataset.itemRow=item.id;
   const k=itemKey(item.id);
@@ -485,6 +492,7 @@ function renderItem(item,scores){
     side=`<div class="readonly-note">${item.section==="company_results"?"この項目は役員のみ入力できます。":"この評価段階では入力対象外です。"}</div>`;
   }
 
+  const primaryComment=activeStage==="interview"?primaryCommentReference((activeRecord.primary_item_comments||{})[k]):"";
   let itemComment="";
   if(["primary","interview"].includes(activeStage)&&canInput){
     const isInterview=activeStage==="interview";
@@ -527,6 +535,7 @@ function renderItem(item,scores){
     ${comp?`<div class="comparison">${comp}</div>`:""}
     ${criteriaRows?`<details class="criteria-details"><summary>1〜5点の評価基準を確認</summary>${criteriaRows}</details>`:""}
     ${item.note?`<p class="item-note">${esc(item.note)}</p>`:""}
+    ${primaryComment}
     ${itemComment}
   </div><div class="item-side">${side}</div>`;
 
