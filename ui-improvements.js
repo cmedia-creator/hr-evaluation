@@ -1,5 +1,5 @@
 // 人事評価システム UI/入力検証改善パッチ 2026-09-10
-// app.js 読み込み後に実行する。v1.9
+// app.js 読み込み後に実行する。v1.10
 
 (() => {
   const uiImpOriginalRenderSections = renderSections;
@@ -186,12 +186,11 @@
 
   function uiImpCopyCurrentEvaluation() {
     if (!["primary", "interview"].includes(activeStage) || !activeRecord) return;
-    const canField = STAGE_META[activeStage]?.can;
     const current = collectCurrent();
     const scores = {};
 
     activeItems
-      .filter(item => !!item[canField])
+      .filter(item => canInputStageItem(item,activeStage))
       .forEach(item => {
         const value = Number(current[itemKey(item.id)] || 0);
         if (value) scores[uiImpSemanticKey(item)] = value;
@@ -227,13 +226,12 @@
     );
     if (!ok) return;
 
-    const canField = STAGE_META[activeStage]?.can;
     let pasted = 0;
     uiImpBulkPasting = true;
 
     try {
       activeItems
-        .filter(item => !!item[canField])
+        .filter(item => canInputStageItem(item,activeStage))
         .forEach(item => {
           const value = uiImpCopiedEvaluation.scores[uiImpSemanticKey(item)];
           if (!value) return;
@@ -320,9 +318,8 @@
     // 役員最終評価は「変更時のみ」の項目があるため、
     // ここでは自己評価・一次評価・面談後評価だけを全入力必須とする。
     if (activeStage === "executive") return [];
-    const canField = STAGE_META[activeStage]?.can;
-    if (!canField) return [];
-    return activeItems.filter(item => !!item[canField]);
+    if (!STAGE_META[activeStage]?.can) return [];
+    return activeItems.filter(item => canInputStageItem(item,activeStage));
   }
 
   function uiImpValidateSubmission() {
@@ -635,7 +632,7 @@
   }
   if (!document.querySelector('script[data-continuous-input]')) {
     const script = document.createElement('script');
-    script.src = './continuous-input.js?v=1.5';
+    script.src = './continuous-input.js?v=1.6';
     script.dataset.continuousInput = 'true';
     document.body.appendChild(script);
   }

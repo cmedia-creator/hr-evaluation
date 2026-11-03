@@ -483,3 +483,9 @@ button,input,textarea,select{
 .primary-overall-details{margin-top:8px;border:1px solid #bfd5e6;border-radius:4px;background:#f5f9fc}
 .primary-overall-details summary{padding:8px 10px;color:#2b4961;font-size:13px;font-weight:800;cursor:pointer}
 .primary-overall-details p{margin:0;padding:0 10px 10px;color:#2b4961;font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+
+/* 面談後評価の③は一次評価の登録点を固定表示 */
+.fixed-primary-score{padding:14px;background:#edf5fb;border-left:4px solid #5b87a8;color:#2b4961}
+.fixed-primary-score strong{display:block;font-size:15px;line-height:1.5}
+.fixed-primary-score span{display:block;margin-top:6px;font-size:18px;font-weight:800}
+.fixed-primary-score small{display:block;margin-top:5px;font-size:12px;line-height:1.5}

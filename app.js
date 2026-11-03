@@ -38,6 +38,19 @@ const $=id=>document.getElementById(id);
 const views=["dashboardView","listView","evaluationView","executiveView"];
 function esc(v=""){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
 function itemKey(id){return`item_${id}`}
+function isFixedInterviewSection(item){return item.section==="department_results"}
+function canInputStageItem(item,stage){
+  return stage==="executive"||!!item[STAGE_META[stage].can]&&!(stage==="interview"&&isFixedInterviewSection(item));
+}
+function effectiveInterviewScores(record,items,scores=record.interview_scores){
+  const effective={...(scores||{})};
+  items.filter(isFixedInterviewSection).forEach(item=>{
+    const key=itemKey(item.id),primary=Number(record.primary_scores?.[key]||0);
+    if(primary)effective[key]=primary;
+    else delete effective[key];
+  });
+  return effective;
+}
 function setMsg(el,text="",type=""){if(!el)return;el.textContent=text;el.className="message"+(type?` ${type}`:"")}
 function internalEmail(id){return`${id.trim().toLowerCase()}@internal.local`}
 function employeeInitial(name){return(name||"?").trim().slice(0,1)}
@@ -358,7 +371,7 @@ function setupPreviousPanel(){
   const totals={
     self:weighted(previousItems,previousRecord.self_scores),
     primary:weighted(previousItems,previousRecord.primary_scores),
-    interview:weighted(previousItems,previousRecord.interview_scores),
+    interview:weighted(previousItems,effectiveInterviewScores(previousRecord,previousItems)),
     final:weighted(previousItems,previousRecord.final_scores)
   };
   $("prevSelfTotal").textContent=totals.self?totals.self.toFixed(1):"-";
@@ -371,7 +384,10 @@ function setupPreviousPanel(){
     $("togglePreviousButton").textContent=$("previousTools").classList.contains("hidden")?"前回評価を表示":"前回評価を閉じる";
   };
   $("copyAllButton").onclick=()=>copyPrevious();
-  document.querySelectorAll(".section-copy").forEach(b=>b.onclick=()=>copyPrevious(b.dataset.section));
+  document.querySelectorAll(".section-copy").forEach(b=>{
+    b.classList.toggle("hidden",activeStage==="interview"&&b.dataset.section==="department_results");
+    b.onclick=()=>copyPrevious(b.dataset.section);
+  });
 }
 function normalizeEvaluationItemText(value){
   return String(value||"").replaceAll("\\n","\n").replace(/\s+/g," ").trim();
@@ -385,7 +401,9 @@ function previousScoreFor(item,field){
       normalizeEvaluationItemText(i.category)===normalizeEvaluationItemText(item.category)&&
       normalizeEvaluationItemText(i.item_text)===normalizeEvaluationItemText(item.item_text)
     );
-  return pi?Number(previousRecord[field]?.[itemKey(pi.id)]||0)||null:null;
+  if(!pi)return null;
+  const scores=field==="interview_scores"&&isFixedInterviewSection(pi)?previousRecord.primary_scores:previousRecord[field];
+  return Number(scores?.[itemKey(pi.id)]||0)||null;
 }
 function sourceFieldForStage(){
   if(activeStage==="self")return"self_scores";
@@ -408,6 +426,7 @@ function copyPrevious(section=null){
 }
 
 function requiredInterviewReasons(record,item,interviewValue){
+  if(isFixedInterviewSection(item))return[];
   const value=Number(interviewValue)||null;if(!value)return[];
   const k=itemKey(item.id);
   const self=Number(record.self_scores?.[k]||0)||null;
@@ -422,6 +441,7 @@ function requiredInterviewReasons(record,item,interviewValue){
 function growthMeetingInfo(record,items){
   const flagged=[];
   items.forEach(item=>{
+    if(isFixedInterviewSection(item))return;
     const v=Number(record.interview_scores?.[itemKey(item.id)]||0)||null;
     const reasons=requiredInterviewReasons(record,item,v);
     if(reasons.length)flagged.push({item,value:v,reasons,comment:(record.interview_item_comments||{})[itemKey(item.id)]||""});
@@ -434,7 +454,9 @@ function renderSections(){
   $("evaluationSections").innerHTML="";
   SECTION_ORDER.forEach(section=>{
     const items=activeItems.filter(i=>i.section===section);if(!items.length)return;
-    const[title,desc]=SECTION_META[section];
+    const[title,defaultDesc]=SECTION_META[section];
+    const desc=activeStage==="interview"&&section==="department_results"
+      ?"一次評価の登録点をそのまま適用します。面談後評価では入力しません。":defaultDesc;
     const d=document.createElement("details");d.className="eval-section";d.open=true;
     d.innerHTML=`<summary><div><span class="panel-kicker">SECTION</span><h2>${esc(title)}</h2><p>${esc(desc)}</p></div><span class="section-pill">${items.length}項目</span></summary><div class="section-content"></div>`;
     const content=d.querySelector(".section-content");
@@ -465,18 +487,18 @@ function renderItem(item,scores){
   const k=itemKey(item.id);
   const self=Number(activeRecord.self_scores?.[k]||0)||null;
   const primary=Number(activeRecord.primary_scores?.[k]||0)||null;
-  const interview=Number(activeRecord.interview_scores?.[k]||0)||null;
+  const interview=Number(effectiveInterviewScores(activeRecord,[item])?.[k]||0)||null;
   const final=Number(activeRecord.final_scores?.[k]||0)||null;
   const prev=previousScoreFor(item,sourceFieldForStage());
-  const canField=STAGE_META[activeStage].can;
-  const canInput=activeStage==="executive"?true:!!item[canField];
-  const current=Number(scores[k]||0)||null;
+  const fixedInterview=activeStage==="interview"&&isFixedInterviewSection(item)&&!!item.primary_can_score;
+  const canInput=canInputStageItem(item,activeStage);
+  const current=fixedInterview?primary:Number(scores[k]||0)||null;
   const criteria=scoreCriteria(item,activeStage);
 
   let comp="";
   if(activeStage==="self")comp=mini("前回",prev)+mini("今回",current,true);
   if(activeStage==="primary")comp=mini("自己",self)+mini("前回一次",prev)+mini("今回一次",current,true);
-  if(activeStage==="interview")comp=mini("自己",self)+mini("一次",primary)+mini("前回面談後",prev)+mini("今回面談後",current,true);
+  if(activeStage==="interview")comp=mini("自己",self)+mini("一次",primary)+mini(fixedInterview?"前回一次":"前回面談後",prev)+mini(fixedInterview?"一次固定":"今回面談後",current,true);
   if(activeStage==="executive")comp=mini("自己",self)+mini("一次",primary)+mini("面談後",interview)+mini("最終",final||current,true);
 
   const options=[5,4,3,2,1].map(n=>`<option value="${n}" ${current===n?"selected":""}>${n}</option>`).join("");
@@ -488,6 +510,8 @@ function renderItem(item,scores){
     side=`<div class="input-box"><label>${activeStage==="executive"&&item.section!=="company_results"?"最終評価（変更時のみ）":STAGE_META[activeStage].title}
       <select data-item="${item.id}"><option value="">未入力</option>${options}</select></label>
       <div class="criteria-box" data-criteria="${item.id}">${esc(selectedText)}</div></div>`;
+  }else if(fixedInterview){
+    side=`<div class="readonly-note fixed-primary-score"><strong>一次評価の登録点を適用</strong><span>${primary?`${primary}点`:"一次評価の点数が未登録です"}</span><small>面談後評価では変更できません。</small></div>`;
   }else{
     side=`<div class="readonly-note">${item.section==="company_results"?"この項目は役員のみ入力できます。":"この評価段階では入力対象外です。"}</div>`;
   }
@@ -600,7 +624,7 @@ function collectCurrent(){
 }
 function missingRequiredComments(scores){
   if(activeStage!=="interview")return[];
-  return activeItems.filter(i=>i.interview_can_score).filter(item=>{
+  return activeItems.filter(i=>canInputStageItem(i,"interview")).filter(item=>{
     const v=Number(scores[itemKey(item.id)]||0)||null;
     if(!requiredInterviewReasons(activeRecord,item,v).length)return false;
     return!String(draftInterviewComments[itemKey(item.id)]||"").trim();
@@ -608,7 +632,7 @@ function missingRequiredComments(scores){
 }
 function requiredCommentItems(scores){
   if(activeStage!=="interview")return[];
-  return activeItems.filter(i=>i.interview_can_score).filter(item=>{
+  return activeItems.filter(i=>canInputStageItem(i,"interview")).filter(item=>{
     const v=Number(scores[itemKey(item.id)]||0)||null;
     return requiredInterviewReasons(activeRecord,item,v).length>0;
   });
@@ -620,17 +644,20 @@ function updateRequiredCommentSummary(){
   $("requiredCommentCount").textContent=`コメントが必要な項目が${required.length}件あります。未入力 ${missing.length}件`;
 }
 function updateEvalSummary(){
-  const scores=collectCurrent(),canField=STAGE_META[activeStage].can;
-  const eligible=activeStage==="executive"?activeItems:activeItems.filter(i=>i[canField]);
+  const scores=collectCurrent();
+  const eligible=activeItems.filter(i=>canInputStageItem(i,activeStage));
   $("inputProgress").textContent=`${Object.keys(scores).length} / ${eligible.length}`;
   $("inputProgressFill").style.width=`${eligible.length?Math.min(100,Object.keys(scores).length/eligible.length*100):0}%`;
   let value=0;
   if(activeStage==="executive")value=weighted(activeItems,{
-    ...(activeRecord.interview_scores||{}),
+    ...effectiveInterviewScores(activeRecord,activeItems),
     ...(activeRecord.final_scores||{}),
     ...scores
   });
-  else value=weighted(eligible,scores);
+  else if(activeStage==="interview"){
+    const scoreItems=activeItems.filter(i=>i.interview_can_score||isFixedInterviewSection(i)&&i.primary_can_score);
+    value=weighted(scoreItems,effectiveInterviewScores(activeRecord,activeItems,scores));
+  }else value=weighted(eligible,scores);
   $("currentScore").textContent=value.toFixed(1);
   $("scoreMeterFill").style.width=`${Math.min(100,Math.max(0,value))}%`;
 }
@@ -644,6 +671,14 @@ async function saveStage(submit=false){
   }
 
   if(activeStage==="interview"){
+    const fixedItems=activeItems.filter(isFixedInterviewSection);
+    fixedItems.forEach(item=>delete scores[itemKey(item.id)]);
+    const missingPrimary=fixedItems.filter(item=>item.primary_can_score&&!Number(activeRecord.primary_scores?.[itemKey(item.id)]||0));
+    if(submit&&missingPrimary.length){
+      setMsg($("saveMessage"),"③ 部署固有の成果評価に一次評価の未登録項目があります。一次評価で登録してください。","error");
+      document.querySelector(`[data-item-row="${missingPrimary[0].id}"]`)?.scrollIntoView({behavior:"smooth",block:"center"});
+      return;
+    }
     const missing=missingRequiredComments(scores);
     if(submit&&missing.length){
       setMsg($("saveMessage"),`コメントが必要な項目が${missing.length}件あります。すべて入力してから提出してください。`,"error");
@@ -653,7 +688,17 @@ async function saveStage(submit=false){
     patch.interview_item_comments={...draftInterviewComments};
   }
 
-  if(activeStage!=="executive"){patch[stage.field]=scores;patch[stage.comment]=$("stageComment").value.trim()||null}
+  if(activeStage!=="executive"){
+    patch[stage.field]=scores;
+    if(activeStage==="interview"){
+      const legacy=activeRecord.interview_scores||{};
+      activeItems.filter(isFixedInterviewSection).forEach(item=>{
+        const key=itemKey(item.id);
+        if(Object.hasOwn(legacy,key))patch.interview_scores[key]=legacy[key];
+      });
+    }
+    patch[stage.comment]=$("stageComment").value.trim()||null;
+  }
   const submittedAt=new Date().toISOString();
   if(activeStage==="self"&&submit){
     if(stageRank(activeRecord.workflow_status)<stageRank("self_submitted"))patch.workflow_status="self_submitted";
@@ -669,7 +714,7 @@ async function saveStage(submit=false){
   }
   if(activeStage==="executive"){
     const exec={...(activeRecord.executive_scores||{})},final={
-      ...(activeRecord.interview_scores||{}),
+      ...effectiveInterviewScores(activeRecord,activeItems),
       ...(activeRecord.final_scores||{})
     };
     activeItems.forEach(i=>{
@@ -720,8 +765,9 @@ async function renderExecutiveRows(){
     const e=employeeMap.get(r.employee_id);if(!e)continue;
     const items=await getItems(r.template_id);
     const growth=growthMeetingInfo(r,items);
-    const interview=weighted(items,r.interview_scores);
-    const final=weighted(items,Object.keys(r.final_scores||{}).length?r.final_scores:r.interview_scores);
+    const interviewScores=effectiveInterviewScores(r,items);
+    const interview=weighted(items,interviewScores);
+    const final=weighted(items,{...interviewScores,...(r.final_scores||{})});
     const prev=await findPrevious(r);
     let prevFinal=null;
     if(prev){const pi=await getItems(prev.r.template_id);prevFinal=weighted(pi,prev.r.final_scores)}

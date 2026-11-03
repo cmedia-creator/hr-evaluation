@@ -1,4 +1,4 @@
-// 人事評価システム 連続入力モード v1.5
+// 人事評価システム 連続入力モード v1.6
 // 一次評価・面談後評価で、1項目ごとに担当社員を横断して入力する。
 
 (() => {
@@ -83,7 +83,7 @@
     for (const record of targets) {
       ciEnsureDraft(record, stage);
       const items = await getItems(record.template_id);
-      for (const item of items.filter(i => !!i[canField])) {
+      for (const item of items.filter(i => !!i[canField] && !(stage === "interview" && isFixedInterviewSection(i)))) {
         const key = ciGroupKey(item);
         if (!groups.has(key)) {
           groups.set(key, {
